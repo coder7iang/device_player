@@ -1,0 +1,215 @@
+{
+  "foods": [
+    {
+      "id": 1,
+      "name": "永和大王",
+      "category": "川菜",
+      "description": "经典川菜，麻辣鲜香",
+      "address": "嘉华大厦E座西边"
+    },
+    {
+      "id": 2,
+      "name": "川辣邦",
+      "category": "家常菜",
+      "description": "肥瘦相间，入口即化",
+      "address": "嘉华大厦E座西边"
+    },
+    {
+      "id": 3,
+      "name": "真功夫",
+      "category": "川菜",
+      "description": "麻辣鲜香，下饭神器",
+      "address": "嘉华大厦E座南边"
+
+    },
+    {
+      "id": 4,
+      "name": "九斗川",
+      "category": "鲁菜",
+      "description": "酸甜可口，老少皆宜",
+      "address": "嘉华大厦E座东边"
+    },
+    {
+      "id": 5,
+      "name": "寻客速食",
+      "category": "川菜",
+      "description": "鱼香味浓，口感丰富",
+      "address": "嘉华大厦E座东边"
+    },
+    {
+      "id": 6,
+      "name": "凡人晓面",
+      "category": "川菜",
+      "description": "四川传统名菜",
+      "address": "嘉华大厦E座东边"
+    },
+    {
+      "id": 7,
+      "name": "桂林米粉",
+      "category": "川菜",
+      "description": "麻辣鲜香，鱼肉嫩滑",
+      "address": "嘉华大厦F座西边"
+    },
+    {
+      "id": 8,
+      "name": "陕味食族",
+      "category": "粤菜",
+      "description": "清淡鲜美，原汁原味",
+      "address": "嘉华大厦F座西边"
+    },
+    {
+      "id": 9,
+      "name": "豌杂面",
+      "category": "家常菜",
+      "description": "甜香可口，简单易做",
+      "address": "嘉华大厦F座东边"
+    },
+    {
+      "id": 10,
+      "name": "米feel湘菜",
+      "category": "家常菜",
+      "description": "经典搭配，营养丰富",
+      "address": "嘉华大厦F座东边"
+    },
+    {
+      "id": 11,
+      "name": "多味轩川味馆",
+      "category": "家常菜",
+      "description": "清爽脆嫩，简单美味",
+      "address": "嘉华大厦F座东边"
+    },
+    {
+      "id": 12,
+      "name": "陕壹哥油泼面",
+      "category": "家常菜",
+      "description": "营养健康，清淡爽口",
+      "address": "金融科贸大厦东边"
+    },
+    {
+      "id": 13,
+      "name": "西部马华",
+      "category": "家常菜",
+      "description": "软糯香甜，下饭神器",
+      "address": "嘉华大厦C座北边"
+    },
+    {
+      "id": 14,
+      "name": "武圣羊汤",
+      "category": "家常菜",
+      "description": "酸辣开胃，爽脆可口",
+      "address": "嘉华大厦C座北边"
+    },
+    {
+      "id": 15,
+      "name": "江南荷叶炒饭",
+      "category": "家常菜",
+      "description": "嫩滑如丝，营养丰富",
+      "address": "嘉华大厦C座北边"
+    },
+    {
+      "id": 16,
+      "name": "饺妈妈",
+      "category": "主食",
+      "description": "经典炒饭，粒粒分明",
+      "address": "嘉华大厦D座南边"
+    },
+    {
+      "id": 17,
+      "name": "小谷姐姐",
+      "category": "主食",
+      "description": "简单快捷，饱腹感强",
+      "address": "嘉华大厦D座南边"
+    },
+    {
+      "id": 18,
+      "name": "学五食堂",
+      "category": "主食",
+      "description": "传统美食，寓意团圆",
+      "address": "嘉华大厦D座南边"
+    },
+    {
+      "id": 19,
+      "name": "醉面",
+      "category": "主食",
+      "description": "软糯香甜，早餐首选",
+      "address": "嘉华大厦D座南边"
+    },
+    {
+      "id": 20,
+      "name": "晋千味",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "弘源新时代"
+    },
+    {
+      "id": 21,
+      "name": "港式叉烧饭",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦D座南边"
+    },
+    {
+      "id": 22,
+      "name": "陕西刀削面",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦D座北边"
+    },
+    {
+      "id": 23,
+      "name": "吾牧酱骨",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦C座南边"
+    },
+    {
+      "id": 24,
+      "name": "老味道手擀面",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦C座南边"
+    },
+    {
+      "id": 25,
+      "name": "三顾冒菜",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦C座南边"
+    },
+    {
+      "id": 26,
+      "name": "三人行家常菜",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦C座南边"
+    },
+    {
+      "id": 27,
+      "name": "张亮麻辣烫",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦B座南边"
+    },
+    {
+      "id": 28,
+      "name": "好适口",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦A座南边"
+    },
+    {
+      "id": 29,
+      "name": "西粉堂",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦A座南边"
+    },
+    {
+      "id": 30,
+      "name": "盖码饭",
+      "category": "特色菜",
+      "description": "麻辣鲜香，聚会首选",
+      "address": "嘉华大厦A座南边"
+    }
+  ]
+}
