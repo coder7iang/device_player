@@ -10,6 +10,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:process_run/shell_run.dart';
+import 'package:image/image.dart' as img;
 
 /// ADB 服务类，封装所有 ADB 相关操作
 class AdbService {
@@ -398,6 +399,8 @@ class AdbService {
       ]);
 
       if (pullResult != null && pullResult.exitCode == 0) {
+        // 添加水印
+        await _addWatermark(localPath);
         debugPrint('截图保存成功: $localPath');
         return true;
       } else {
@@ -407,6 +410,65 @@ class AdbService {
     } catch (e) {
       debugPrint('截图操作失败: $e');
       return false;
+    }
+  }
+
+  /// 为截图添加水印
+  Future<void> _addWatermark(String imagePath) async {
+    try {
+      // 读取图片文件
+      final imageFile = File(imagePath);
+      final bytes = await imageFile.readAsBytes();
+      img.Image? image = img.decodeImage(bytes);
+      
+      if (image == null) {
+        debugPrint('无法解码图片');
+        return;
+      }
+
+      // 水印文字
+      const watermarkText = 'screenshot by DevicePlayer';
+      
+      // 使用 arial48 字体（高度约48像素）
+      final font = img.arial48;
+      
+      // 距离右边和底部的边距
+      const margin = 20;
+      
+      // 计算文字位置（右下角）
+      // arial48 字体，估算每个字符宽度约26像素
+      const textWidth = watermarkText.length * 26;
+      final textX = image.width - textWidth - margin;
+      final textY = image.height - 48 - margin; // 48是字体高度
+      
+      // 先绘制黑色阴影（偏移2像素）增加可读性
+      img.drawString(
+        image,
+        watermarkText,
+        font: font,
+        x: textX + 2,
+        y: textY + 2,
+        color: img.ColorRgba8(0, 0, 0, 200), // 黑色阴影
+      );
+      
+      // 绘制白色文字
+      img.drawString(
+        image,
+        watermarkText,
+        font: font,
+        x: textX,
+        y: textY,
+        color: img.ColorRgba8(255, 255, 255, 255), // 白色
+      );
+      
+      // 保存图片
+      final modifiedBytes = img.encodePng(image);
+      await imageFile.writeAsBytes(modifiedBytes);
+      
+      debugPrint('水印添加成功');
+    } catch (e) {
+      debugPrint('添加水印失败: $e');
+      // 即使添加水印失败，也不影响截图功能
     }
   }
 
