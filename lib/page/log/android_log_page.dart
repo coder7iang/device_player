@@ -16,22 +16,14 @@ class AndroidLogPage extends ConsumerStatefulWidget {
 }
 
 class _AndroidLogPageState extends ConsumerState<AndroidLogPage> {
-  late TextEditingController filterController;
   
   @override
   void initState() {
     super.initState();
-    filterController = TextEditingController();
     // 初始化日志页面
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(androidLogProvider(widget.deviceId).notifier).init();
     });
-  }
-
-  @override
-  void dispose() {
-    filterController.dispose();
-    super.dispose();
   }
 
   @override
@@ -65,7 +57,7 @@ class _AndroidLogPageState extends ConsumerState<AndroidLogPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
-                          controller: filterController,
+                          controller: logNotifier.filterController,
                           onChanged: (value) {
                             logNotifier.setFilterContent(value);
                           },
@@ -164,33 +156,6 @@ class _AndroidLogPageState extends ConsumerState<AndroidLogPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // 显示当前位置/总数
-                      Consumer(
-                        builder: (context, ref, child) {
-                          final state = ref.watch(androidLogProvider(widget.deviceId));
-                          if (logNotifier.findController.text.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          int current = logNotifier.currentMatchNumber;
-                          int total = state.findMatchCount;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '$current/$total',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF666666),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 4),
                       // 上一个按钮（向上箭头）
                       _buildIconButton(
                         icon: Icons.keyboard_arrow_up,

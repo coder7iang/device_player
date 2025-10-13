@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:device_player/common/app.dart';
 import 'package:device_player/page/log/android_log_state.dart';
 import 'package:device_player/services/adb_service.dart';
@@ -24,17 +23,11 @@ final androidLogProvider = StateNotifierProvider.family<AndroidLogNotifier, Andr
 class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
   String? get adbPath => state.adbPath;
   
-  /// 获取当前匹配项在所有匹配项中的序号
-  int get currentMatchNumber {
-    if (state.findIndex < 0 || findController.text.isEmpty) return 0;
-    
-    List<int> allMatches = _getAllMatchIndices();
-    int position = allMatches.indexOf(state.findIndex);
-    return position >= 0 ? position + 1 : 0;
-  }
-  
   /// 筛选级别 ViewModel
   late PopUpMenuButtonViewModel<FilterLevel> filterLevelViewModel;
+  
+  /// 筛选内容控制器
+  late TextEditingController filterController;
   
   /// 查找控制器
   late TextEditingController findController;
@@ -79,7 +72,6 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
   static const String caseSensitiveKey = 'caseSensitive';
   
   Process? _process;
-  bool _autoScrollEnabled = false;  // 是否启用自动滚动到底部
   List<String> _pendingLogs = [];  // 待更新的日志缓冲区
   Timer? _updateTimer;  // 用于批量更新的定时器
   
@@ -89,20 +81,19 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     filterLevelViewModel = PopUpMenuButtonViewModel<FilterLevel>();
     filterLevelViewModel.list = filterLevel;
     filterLevelViewModel.selectValue = filterLevel.first;
+    filterController = TextEditingController();
     findController = TextEditingController();
     scrollController = FlutterListViewController();
     
-    // 添加滚动监听器
-    _setupScrollListener();
     
     // 启动批量更新定时器（每200ms更新一次）
     _startBatchUpdateTimer();
     
-    // 监听查找输入框，清空时重置查找索引和匹配数
+    // 监听查找输入框，清空时重置查找索引
     findController.addListener(() {
       if (findController.text.isEmpty) {
-        if (state.findIndex >= 0 || state.findMatchCount > 0) {
-          state = state.copyWith(findIndex: -1, findMatchCount: 0);
+        if (state.findIndex >= 0) {
+          state = state.copyWith(findIndex: -1);
         }
       }
     });
@@ -112,29 +103,7 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     _initLogging();
   }
   
-  /// 设置滚动监听器 - 用户手动滚动时禁用自动跟随
-  void _setupScrollListener() {
-    double lastPosition = 0;
-    scrollController.addListener(() {
-      try {
-        final position = scrollController.position;
-        final currentPosition = position.pixels;
-        
-        // 检测用户主动滚动（位置变化超过阈值）
-        if ((currentPosition - lastPosition).abs() > 10) {
-          // 如果不是在底部，说明用户在查看历史日志，禁用自动滚动
-          final maxScroll = position.maxScrollExtent;
-          if ((maxScroll - currentPosition) > 50) {
-            _autoScrollEnabled = false;
-          }
-        }
-        
-        lastPosition = currentPosition;
-      } catch (e) {
-        // 忽略错误
-      }
-    });
-  }
+
   
   /// 启动批量更新定时器
   void _startBatchUpdateTimer() {
@@ -159,20 +128,7 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     state = state.copyWith(logList: updatedLogs);
     _pendingLogs.clear();
     
-    // 只有启用了自动滚动才跳转到底部（仅在用户点击滑动到底部按钮后启用）
-    if (_autoScrollEnabled) {
-      try {
-        Future.microtask(() {
-          try {
-            scrollController.jumpTo(scrollController.position.maxScrollExtent);
-          } catch (e) {
-            // 滚动失败，忽略
-          }
-        });
-      } catch (e) {
-        // 忽略错误
-      }
-    }
+    
   }
   
   /// 初始化
@@ -445,22 +401,11 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     _applyFilter();
   }
   
-  /// 设置是否显示最新日志
-  void setShowLast(bool value) {
-    state = state.copyWith(isShowLast: value);
-    if (value) {
-      if (findController.text.isEmpty) {
-        scrollController.jumpTo(
-          scrollController.position.maxScrollExtent,
-        );
-      }
-    }
-  }
+
   
   /// 滚动到底部
   void scrollToBottom() {
     // 启用自动滚动到底部
-    _autoScrollEnabled = true;
     
     // 启用自动跟随最新日志
     state = state.copyWith(isShowLast: true);
@@ -517,15 +462,9 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     
     int foundIndex = allMatches[nextPosition];
     
-    // 当前是第几个匹配项（从1开始）
-    int currentMatchNumber = nextPosition + 1;
-    
     state = state.copyWith(
       findIndex: foundIndex,
-      findMatchCount: allMatches.length,  // 总匹配数
     );
-    
-    print('查找: 第 $currentMatchNumber 个匹配项，共 ${allMatches.length} 个');
     
     // 滚动到找到的位置
     try {
@@ -560,7 +499,6 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     
     state = state.copyWith(
       findIndex: foundIndex,
-      findMatchCount: allMatches.length,  // 总匹配数
     );
     
     // 滚动到找到的位置
@@ -634,6 +572,7 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     _updateTimer?.cancel();  // 取消定时器
     _pendingLogs.clear();  // 清空缓冲区
     stopLogListener();
+    filterController.dispose();
     findController.dispose();
     scrollController.dispose();
     super.dispose();

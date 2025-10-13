@@ -15,7 +15,6 @@ class AndroidLogState {
   final bool isShowLast;
   final String pid;
   final int findIndex;
-  final int findMatchCount;
   final bool isLoading;
   final String? errorMessage;
   final bool isLogging;
@@ -33,7 +32,6 @@ class AndroidLogState {
     this.isShowLast = true,
     this.pid = "",
     this.findIndex = -1,
-    this.findMatchCount = 0,
     this.isLoading = false,
     this.errorMessage,
     this.isLogging = false,
@@ -53,7 +51,6 @@ class AndroidLogState {
     bool? isShowLast,
     String? pid,
     int? findIndex,
-    int? findMatchCount,
     bool? isLoading,
     String? errorMessage,
     bool? isLogging,
@@ -71,7 +68,6 @@ class AndroidLogState {
       isShowLast: isShowLast ?? this.isShowLast,
       pid: pid ?? this.pid,
       findIndex: findIndex ?? this.findIndex,
-      findMatchCount: findMatchCount ?? this.findMatchCount,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
       isLogging: isLogging ?? this.isLogging,
@@ -116,7 +112,6 @@ class AndroidLogState {
         other.isShowLast == isShowLast &&
         other.pid == pid &&
         other.findIndex == findIndex &&
-        other.findMatchCount == findMatchCount &&
         other.isLoading == isLoading &&
         other.errorMessage == errorMessage &&
         other.isLogging == isLogging &&
@@ -136,7 +131,6 @@ class AndroidLogState {
     isShowLast, 
     pid, 
     findIndex,
-    findMatchCount,
     isLoading, 
     errorMessage, 
     isLogging,
