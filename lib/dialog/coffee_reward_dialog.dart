@@ -69,13 +69,13 @@ class _CoffeeRewardDialogState extends State<CoffeeRewardDialog>
                       decoration: BoxDecoration(
                         gradient: RadialGradient(
                           colors: [
-                            Colors.orange.withOpacity(0.1),
-                            Colors.brown.withOpacity(0.05),
+                            Colors.orange.withValues(alpha: 0.1),
+                            Colors.brown.withValues(alpha: 0.05),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(25),
                         border: Border.all(
-                          color: Colors.orange.withOpacity(0.3),
+                          color: Colors.orange.withValues(alpha: 0.3),
                           width: 2,
                         ),
                       ),
@@ -93,9 +93,9 @@ class _CoffeeRewardDialogState extends State<CoffeeRewardDialog>
                     //           shape: BoxShape.circle,
                     //           gradient: SweepGradient(
                     //             colors: [
-                    //               Colors.orange.withOpacity(0.3),
+                    //               Colors.orange.withValues(alpha: 0.3),
                     //               Colors.transparent,
-                    //               Colors.orange.withOpacity(0.3),
+                    //               Colors.orange.withValues(alpha: 0.3),
                     //             ],
                     //             stops: const [0.0, 0.5, 1.0],
                     //           ),
@@ -128,7 +128,7 @@ class _CoffeeRewardDialogState extends State<CoffeeRewardDialog>
                           borderRadius: BorderRadius.circular(25),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.withOpacity(0.3),
+                              color: Colors.orange.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -165,7 +165,7 @@ class _CoffeeRewardDialogState extends State<CoffeeRewardDialog>
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

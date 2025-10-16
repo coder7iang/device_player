@@ -53,7 +53,7 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     try {
       // 打印完整的命令行
       String command = '$adbPath ${arguments.join(' ')}';
-      print('执行 ADB 命令: $command');
+      debugPrint('执行 ADB 命令: $command');
       
       var process = await Process.run(adbPath!, arguments);
       return process;
@@ -72,7 +72,7 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
   static const String caseSensitiveKey = 'caseSensitive';
   
   Process? _process;
-  List<String> _pendingLogs = [];  // 待更新的日志缓冲区
+  final List<String> _pendingLogs = [];  // 待更新的日志缓冲区
   Timer? _updateTimer;  // 用于批量更新的定时器
   
   AndroidLogNotifier(String deviceId) 
@@ -263,21 +263,21 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
       if (result != null && result.exitCode == 0) {
         String output = result.stdout.toString().trim();
         if (output.isNotEmpty) {
-          print('获取到 PID: $output (包名: ${state.packageName})');
+          debugPrint('获取到 PID: $output (包名: ${state.packageName})');
           state = state.copyWith(pid: output);
           return true;
         } else {
-          print('PID 为空，应用可能未运行 (包名: ${state.packageName})');
+          debugPrint('PID 为空，应用可能未运行 (包名: ${state.packageName})');
           state = state.copyWith(pid: "");
           return false;
         }
       } else {
-        print('获取 PID 失败，exitCode: ${result?.exitCode}');
+        debugPrint('获取 PID 失败，exitCode: ${result?.exitCode}');
         state = state.copyWith(pid: "");
         return false;
       }
     } catch (e) {
-      print('获取 PID 异常: $e');
+      debugPrint('获取 PID 异常: $e');
       state = state.copyWith(pid: "");
       return false;
     }
@@ -316,12 +316,12 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
       // 根据 PID 过滤应用日志（有包名就自动筛选）
       if (state.pid.isNotEmpty) {
         args.add('--pid=${state.pid}');
-        print('当前 PID: ${state.pid}, 包名: ${state.packageName}');
+        debugPrint('当前 PID: ${state.pid}, 包名: ${state.packageName}');
       }
       
       // 打印完整的命令行
       String command = '${adbPath ?? 'adb'} ${args.join(' ')}';
-      print('执行 ADB 命令: $command');
+      debugPrint('执行 ADB 命令: $command');
       
       _process = await Process.start(adbPath ?? 'adb', args);
       

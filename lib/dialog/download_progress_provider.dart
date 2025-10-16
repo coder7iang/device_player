@@ -74,7 +74,7 @@ class DownloadProgressNotifier extends StateNotifier<DownloadProgressState> {
             debugPrint('下载进度: $progress');
             updateProgress(
               progress: progress,
-              status: "已下载 ${receivedMB} MB / ${totalMB} MB",
+              status: "已下载 $receivedMB MB / $totalMB MB",
             );
           }
         },

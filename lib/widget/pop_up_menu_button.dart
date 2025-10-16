@@ -82,25 +82,13 @@ class PopUpMenuItem {
 }
 
 class PopUpMenuButtonViewModel<T extends PopUpMenuItem> {
-  List<T> _list = [];
+  List<T> list = [];
 
-  List<T> get list => _list;
-
-  set list(List<T> values) {
-    _list = values;
-  }
-
-  T? _selectValue;
-
-  T? get selectValue => _selectValue;
-
-  set selectValue(T? value) {
-    _selectValue = value;
-  }
+  T? selectValue;
 
   PopUpMenuButtonViewModel();
 
   void setData(List<T> data) {
-    _list = data;
+    list = data;
   }
 }

@@ -5,7 +5,6 @@ import 'package:device_player/page/main/main_provider.dart';
 import 'package:device_player/page/main/main_state.dart';
 import 'package:device_player/page/play/play_page.dart';
 import 'package:device_player/page/setting/setting_page.dart';
-import 'package:device_player/dialog/smart_dialog_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';

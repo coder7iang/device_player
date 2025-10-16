@@ -49,8 +49,8 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
     final featureNotifier = ref.read(featureProvider(widget.deviceId).notifier);
     
     // 添加调试信息
-    print('FeaturePage build - deviceId: ${widget.deviceId}');
-    print('FeaturePage build - featureState: $featureState');
+    debugPrint('FeaturePage build - deviceId: ${widget.deviceId}');
+    debugPrint('FeaturePage build - featureState: $featureState');
     
     
     return Stack(
@@ -361,174 +361,174 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
 
   /// 处理按钮点击事件，根据operation区分处理
   void _handleButtonClick(FeatureButton button, FeatureNotifier featureNotifier) {
-    print('Button clicked - Operation: ${button.operation}, Title: ${button.title}');
+    debugPrint('Button clicked - Operation: ${button.operation}, Title: ${button.title}');
     
     // 根据operation进行不同的处理
     switch (button.operation) {
       // 常用功能
       case FeatureConstants.install:
-        print('处理安装应用操作');
+        debugPrint('处理安装应用操作');
         featureNotifier.install();
         break;
       case FeatureConstants.screenshot:
-        print('处理截图操作');
+        debugPrint('处理截图操作');
         featureNotifier.screenshot();
         break;
       case FeatureConstants.recordScreen:
-        print('处理录屏操作');
+        debugPrint('处理录屏操作');
         featureNotifier.recordScreen();
         break;
       case FeatureConstants.getForegroundActivity:
-        print('处理查看当前Activity操作');
+        debugPrint('处理查看当前Activity操作');
         featureNotifier.getForegroundActivity();
         break;
       case FeatureConstants.inputText:
-        print('处理输入文本操作');
+        debugPrint('处理输入文本操作');
         featureNotifier.inputText(context);
         break;
       case FeatureConstants.screenMirroring:
-        print('处理投屏操作');
+        debugPrint('处理投屏操作');
         featureNotifier.startScreenMirroring();
         break;
       
       // 应用相关
       case FeatureConstants.uninstall:
-        print('处理卸载应用操作');
+        debugPrint('处理卸载应用操作');
         featureNotifier.uninstallApk();
         break;
       case FeatureConstants.startApp:
-        print('处理启动应用操作');
+        debugPrint('处理启动应用操作');
         featureNotifier.startApp();
         break;
       case FeatureConstants.stopApp:
-        print('处理停止应用操作');
+        debugPrint('处理停止应用操作');
         featureNotifier.stopApp();
         break;
       case FeatureConstants.restartApp:
-        print('处理重启应用操作');
+        debugPrint('处理重启应用操作');
         featureNotifier.restartApp();
         break;
       case FeatureConstants.clearData:
-        print('处理清除数据操作');
+        debugPrint('处理清除数据操作');
         featureNotifier.clearAppData();
         break;
       case FeatureConstants.clearDataRestart:
-        print('处理清除数据并重启操作');
+        debugPrint('处理清除数据并重启操作');
         _handleClearDataRestart(featureNotifier);
         break;
       case FeatureConstants.resetPermission:
-        print('处理重置权限操作');
+        debugPrint('处理重置权限操作');
         featureNotifier.resetAppPermission();
         break;
       case FeatureConstants.resetPermissionRestart:
-        print('处理重置权限并重启操作');
+        debugPrint('处理重置权限并重启操作');
         _handleResetPermissionRestart(featureNotifier);
         break;
       case FeatureConstants.grantPermission:
-        print('处理授权所有权限操作');
+        debugPrint('处理授权所有权限操作');
         featureNotifier.grantAppPermission();
         break;
       case FeatureConstants.getInstallPath:
-        print('处理查看应用安装路径操作');
+        debugPrint('处理查看应用安装路径操作');
         featureNotifier.getAppInstallPath();
         break;
       case FeatureConstants.saveApk:
-        print('处理保存应用APK操作');
+        debugPrint('处理保存应用APK操作');
         featureNotifier.saveAppApk();
         break;
       case FeatureConstants.saveLog:
-        print('处理保存日志操作');
+        debugPrint('处理保存日志操作');
         featureNotifier.saveLog();
         break;
       
       // 系统相关
       case FeatureConstants.getAndroidId:
-        print('处理查看AndroidId操作');
+        debugPrint('处理查看AndroidId操作');
         featureNotifier.getAndroidId();
         break;
       case FeatureConstants.getDeviceVersion:
-        print('处理查看系统版本操作');
+        debugPrint('处理查看系统版本操作');
         featureNotifier.getDeviceVersion();
         break;
       case FeatureConstants.getDeviceIp:
-        print('处理查看IP地址操作');
+        debugPrint('处理查看IP地址操作');
         featureNotifier.getDeviceIpAddress();
         break;
       case FeatureConstants.getDeviceMac:
-        print('处理查看Mac地址操作');
+        debugPrint('处理查看Mac地址操作');
         featureNotifier.getDeviceMac();
         break;
       case FeatureConstants.reboot:
-        print('处理重启手机操作');
+        debugPrint('处理重启手机操作');
         featureNotifier.reboot();
         break;
       case FeatureConstants.getSystemProperty:
-        print('处理查看系统属性操作');
+        debugPrint('处理查看系统属性操作');
         featureNotifier.getSystemProperty();
         break;
       
       // 按键相关
       case FeatureConstants.pressHome:
-        print('处理HOME键操作');
+        debugPrint('处理HOME键操作');
         featureNotifier.pressHome();
         break;
       case FeatureConstants.pressBack:
-        print('处理返回键操作');
+        debugPrint('处理返回键操作');
         featureNotifier.pressBack();
         break;
       case FeatureConstants.pressMenu:
-        print('处理菜单键操作');
+        debugPrint('处理菜单键操作');
         featureNotifier.pressMenu();
         break;
       case FeatureConstants.pressPower:
-        print('处理电源键操作');
+        debugPrint('处理电源键操作');
         featureNotifier.pressPower();
         break;
       case FeatureConstants.pressVolumeUp:
-        print('处理增加音量操作');
+        debugPrint('处理增加音量操作');
         featureNotifier.pressVolumeUp();
         break;
       case FeatureConstants.pressVolumeDown:
-        print('处理降低音量操作');
+        debugPrint('处理降低音量操作');
         featureNotifier.pressVolumeDown();
         break;
       case FeatureConstants.pressVolumeMute:
-        print('处理静音操作');
+        debugPrint('处理静音操作');
         featureNotifier.pressVolumeMute();
         break;
       case FeatureConstants.pressSwitchApp:
-        print('处理切换应用操作');
+        debugPrint('处理切换应用操作');
         featureNotifier.pressSwitchApp();
         break;
       case FeatureConstants.remoteControl:
-        print('处理遥控器操作');
+        debugPrint('处理遥控器操作');
         featureNotifier.showRemoteControlDialog(context);
         break;
       
       // 屏幕输入
       case FeatureConstants.swipeUp:
-        print('处理向上滑动操作');
+        debugPrint('处理向上滑动操作');
         featureNotifier.pressSwipeUp();
         break;
       case FeatureConstants.swipeDown:
-        print('处理向下滑动操作');
+        debugPrint('处理向下滑动操作');
         featureNotifier.pressSwipeDown();
         break;
       case FeatureConstants.swipeLeft:
-        print('处理向左滑动操作');
+        debugPrint('处理向左滑动操作');
         featureNotifier.pressSwipeLeft();
         break;
       case FeatureConstants.swipeRight:
-        print('处理向右滑动操作');
+        debugPrint('处理向右滑动操作');
         featureNotifier.pressSwipeRight();
         break;
       case FeatureConstants.screenClick:
-        print('处理屏幕点击操作');
+        debugPrint('处理屏幕点击操作');
         featureNotifier.pressScreen();
         break;
       
       default:
-        print('未知操作类型: ${button.operation}');
+        debugPrint('未知操作类型: ${button.operation}');
     }
   }
 

@@ -39,7 +39,7 @@ class _FeatureBackgroundState extends State<FeatureBackground> {
   Future<void> _loadBackgroundPath() async {
     String backgroundPath = await App().getAppBackgroundPath();
 
-    print('backgroundPath: $backgroundPath');
+    debugPrint('backgroundPath: $backgroundPath');
     if (mounted) {
       setState(() {
         _backgroundPath = backgroundPath;
@@ -78,7 +78,7 @@ class _FeatureBackgroundState extends State<FeatureBackground> {
         _videoController!.play();
       }
     } catch (e) {
-      print('视频播放器初始化失败: $e');
+      debugPrint('视频播放器初始化失败: $e');
       if (mounted) {
         setState(() {
           _isVideoInitialized = false;

@@ -316,7 +316,7 @@ class AdbService {
       }
 
     } catch (e) {
-      print('获取已安装应用失败: $e');
+      debugPrint('获取已安装应用失败: $e');
     }
     return [];
   }
@@ -880,7 +880,7 @@ class AdbService {
       for (var value in outLines) {
         value = value.substring(value.indexOf("addr:"), value.length);
         ip += value.substring(0, value.indexOf(" ")) + "\n";
-        print(value);
+        debugPrint(value);
       }
       return ip;
     }
@@ -1137,7 +1137,7 @@ class AdbService {
   Future<bool> saveLog(String savePath, {String? packageName}) async {
     try {
       if (packageName == null || packageName.isEmpty) {
-        print("需要指定包名来获取应用日志");
+        debugPrint("需要指定包名来获取应用日志");
         return false;
       }
       
@@ -1154,7 +1154,7 @@ class AdbService {
       ]);
       
       if (checkResult == null || checkResult.exitCode != 0) {
-        print("应用日志目录不存在: $logDirPath");
+        debugPrint("应用日志目录不存在: $logDirPath");
         return false;
       }
       
@@ -1170,7 +1170,7 @@ class AdbService {
       ]);
       
       if (listResult == null || listResult.exitCode != 0 || listResult.stdout.trim().isEmpty) {
-        print("日志目录中没有找到文件");
+        debugPrint("日志目录中没有找到文件");
         return false;
       }
       
@@ -1180,24 +1180,24 @@ class AdbService {
           .toList();
       
       if (files.isEmpty) {
-        print("没有找到文件");
+        debugPrint("没有找到文件");
         return false;
       }
       
-      print("找到 ${files.length} 个文件，开始拉取日志目录...");
+      debugPrint("找到 ${files.length} 个文件，开始拉取日志目录...");
       
       // 使用adb pull拉取整个日志目录
       var success = await pullFile(logDirPath,savePath);
       
       if (success) {
-        print("日志目录拉取成功");
+        debugPrint("日志目录拉取成功");
         return true;
       } else {
         return false;
       }
       
     } catch (e) {
-      print("保存日志失败: $e");
+      debugPrint("保存日志失败: $e");
       return false;
     }
   }

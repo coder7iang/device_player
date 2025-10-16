@@ -114,7 +114,7 @@ class _FoodRouletteDialogState extends ConsumerState<FoodRouletteDialog>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 5),
                                 ),
@@ -146,7 +146,7 @@ class _FoodRouletteDialogState extends ConsumerState<FoodRouletteDialog>
                           border: Border.all(color: Colors.orange, width: 3),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.withOpacity(0.3),
+                              color: Colors.orange.withValues(alpha: 0.3),
                               blurRadius: 15,
                               offset: const Offset(0, 5),
                             ),
@@ -310,12 +310,12 @@ class RoulettePainter extends CustomPainter {
       final textPainter = TextPainter(
         text: TextSpan(
           text: foods[i].name,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 12,
             fontWeight: FontWeight.bold,
             shadows: [
-              const Shadow(
+              Shadow(
                 color: Colors.black,
                 blurRadius: 2,
                 offset: Offset(1, 1),
