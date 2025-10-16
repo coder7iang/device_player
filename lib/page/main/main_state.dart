@@ -32,11 +32,14 @@ class MainState {
     String? loadingText,
     String? errorMessage,
     bool? isAdbAvailable,
+    clearSelectedDevice = false,
   }) {
     return MainState(
       adbPath: adbPath ?? this.adbPath,
       devicesList: devicesList ?? this.devicesList,
-      selectedDevice: selectedDevice ?? this.selectedDevice, // 使用 ?? 操作符保持原有值
+      selectedDevice: clearSelectedDevice 
+        ? null 
+        : (selectedDevice ?? this.selectedDevice),
       selectedIndex: selectedIndex ?? this.selectedIndex,
       isLoading: isLoading ?? this.isLoading,
       loadingText: loadingText ?? this.loadingText,

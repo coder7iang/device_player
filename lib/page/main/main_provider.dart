@@ -25,12 +25,6 @@ class MainNotifier extends StateNotifier<MainState> {
     await checkScrcpy();
     if (state.isAdbAvailable) {
       await getDeviceList();
-      if (state.devicesList.isNotEmpty) {
-        state = state.copyWith(
-          selectedIndex: 1,
-          selectedDevice: state.devicesList.first,
-        );
-      }
     }
   }
   
@@ -69,6 +63,7 @@ class MainNotifier extends StateNotifier<MainState> {
         state = state.copyWith(
           devicesList: [],
           selectedDevice: null,
+          clearSelectedDevice: true,
           selectedIndex: 1, // 没有设备时也保持显示 FeaturePage
           isLoading: false,
           loadingText: "",

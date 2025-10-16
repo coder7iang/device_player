@@ -392,10 +392,27 @@ class ScrcpyService {
 
       var url = "";
       if (Platform.isMacOS) {
-        url =
-            "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-macos-aarch64-v3.3.2.tar.gz";
-        // url =
-        //     "https://github.com/Genymobile/scrcpy/releases/download/v3.3.2/scrcpy-macos-aarch64-v3.3.2.tar.gz";
+        // 检测 macOS 架构
+        try {
+          // 通过检查系统架构来确定使用哪个版本
+          final result = await Process.run('uname', ['-m']);
+          if (result.exitCode == 0) {
+            final arch = result.stdout.toString().trim();
+            if (arch == 'arm64') {
+              // Apple Silicon (M1/M2/M3) 架构
+              url = "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-macos-aarch64-v3.3.2.tar.gz";
+            } else {
+              // Intel x86_64 架构
+              url = "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-macos-x86_64-v3.3.3.tar.gz";
+            }
+          } else {
+            // 如果检测失败，默认使用 Intel 版本
+            url = "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-macos-x86_64-v3.3.3.tar.gz";
+          }
+        } catch (e) {
+          // 如果检测异常，默认使用 Intel 版本
+          url = "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-macos-x86_64-v3.3.3.tar.gz";
+        }
       } else if (Platform.isWindows) {
         url =
             "https://github.com/Genymobile/scrcpy/releases/download/v3.3.2/scrcpy-win64-v3.3.2.zip";
