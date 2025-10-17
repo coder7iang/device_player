@@ -227,53 +227,106 @@ class _AndroidLogPageState extends ConsumerState<AndroidLogPage> {
     bool isCurrentFind,
     String searchTerm,
     bool caseSensitive,
+    String filterContent, // 添加筛选内容参数
   ) {
-    // 如果没有搜索词，直接返回普通文本
-    if (searchTerm.isEmpty) {
+    // 如果没有搜索词和筛选内容，直接返回普通文本
+    if (searchTerm.isEmpty && filterContent.isEmpty) {
       return SelectableText(
         text,
         style: TextStyle(color: textColor, fontSize: 13),
       );
     }
 
-    // 处理搜索高亮
+    // 处理高亮 - 支持同时显示查找和筛选高亮
     List<TextSpan> spans = [];
     String textToSearch = caseSensitive ? text : text.toLowerCase();
-    String termToSearch = caseSensitive ? searchTerm : searchTerm.toLowerCase();
     
-    int start = 0;
-    while (start < text.length) {
-      int index = textToSearch.indexOf(termToSearch, start);
+    // 创建高亮标记数组
+    List<bool> searchHighlights = List.filled(text.length, false);
+    List<bool> filterHighlights = List.filled(text.length, false);
+    
+    // 标记查找高亮
+    if (searchTerm.isNotEmpty) {
+      String searchTermToSearch = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+      int start = 0;
+      while (start < text.length) {
+        int index = textToSearch.indexOf(searchTermToSearch, start);
+        if (index == -1) break;
+        
+        for (int i = index; i < index + searchTerm.length; i++) {
+          if (i < searchHighlights.length) {
+            searchHighlights[i] = true;
+          }
+        }
+        start = index + searchTerm.length;
+      }
+    }
+    
+    // 标记筛选高亮
+    if (filterContent.isNotEmpty) {
+      String filterTermToSearch = caseSensitive ? filterContent : filterContent.toLowerCase();
+      int start = 0;
+      while (start < text.length) {
+        int index = textToSearch.indexOf(filterTermToSearch, start);
+        if (index == -1) break;
+        
+        for (int i = index; i < index + filterContent.length; i++) {
+          if (i < filterHighlights.length) {
+            filterHighlights[i] = true;
+          }
+        }
+        start = index + filterContent.length;
+      }
+    }
+    
+    // 构建文本片段
+    int i = 0;
+    while (i < text.length) {
+      int start = i;
       
-      if (index == -1) {
-        // 没有找到更多匹配，添加剩余文本
-        spans.add(TextSpan(
-          text: text.substring(start),
-          style: TextStyle(color: textColor, fontSize: 13),
-        ));
-        break;
+      // 找到连续的高亮区域
+      while (i < text.length && (searchHighlights[i] || filterHighlights[i])) {
+        i++;
       }
       
-      // 添加匹配前的文本
-      if (index > start) {
+      if (start < i) {
+        // 添加高亮文本
+        String highlightText = text.substring(start, i);
+        bool isSearchHighlight = searchHighlights[start];
+        
+        Color backgroundColor;
+        if (isCurrentFind && isSearchHighlight) {
+          backgroundColor = Colors.red; // 当前查找项
+        } else if (isSearchHighlight) {
+          backgroundColor = Colors.yellowAccent; // 查找高亮
+        } else {
+          backgroundColor = Colors.orangeAccent; // 筛选高亮
+        }
+        
         spans.add(TextSpan(
-          text: text.substring(start, index),
-          style: TextStyle(color: textColor, fontSize: 13),
+          text: highlightText,
+          style: TextStyle(
+            color: isCurrentFind && isSearchHighlight ? Colors.white : textColor,
+            backgroundColor: backgroundColor,
+            fontWeight: isCurrentFind && isSearchHighlight ? FontWeight.bold : null,
+            fontSize: 13,
+          ),
         ));
       }
       
-      // 添加匹配的文本（高亮）
-      spans.add(TextSpan(
-        text: text.substring(index, index + searchTerm.length),
-        style: TextStyle(
-          color: isCurrentFind ? Colors.white : textColor,
-          backgroundColor: isCurrentFind ? Colors.red : Colors.yellowAccent,
-          fontWeight: isCurrentFind ? FontWeight.bold : null,
-          fontSize: 13,
-        ),
-      ));
-      
-      start = index + searchTerm.length;
+      // 添加非高亮文本
+      if (i < text.length) {
+        int nonHighlightStart = i;
+        while (i < text.length && !searchHighlights[i] && !filterHighlights[i]) {
+          i++;
+        }
+        if (nonHighlightStart < i) {
+          spans.add(TextSpan(
+            text: text.substring(nonHighlightStart, i),
+            style: TextStyle(color: textColor, fontSize: 13),
+          ));
+        }
+      }
     }
 
     return SelectableText.rich(
@@ -317,6 +370,7 @@ class _AndroidLogPageState extends ConsumerState<AndroidLogPage> {
                         logState.findIndex == index,
                         logNotifier.findController.text,
                         logState.isCaseSensitive,
+                        logState.filterContent, // 传入筛选内容
                       ),
                     ),
                   );

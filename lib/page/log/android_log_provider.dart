@@ -73,6 +73,7 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
   
   Process? _process;
   final List<String> _pendingLogs = [];  // 待更新的日志缓冲区
+  final List<String> _allLogs = [];  // 全量日志缓冲区
   Timer? _updateTimer;  // 用于批量更新的定时器
   
   AndroidLogNotifier(String deviceId) 
@@ -118,17 +119,30 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
   void _flushPendingLogs() {
     if (_pendingLogs.isEmpty) return;
     
-    List<String> updatedLogs = List.from(state.logList)..addAll(_pendingLogs);
+    // 先添加到全量日志缓冲区
+    _allLogs.addAll(_pendingLogs);
     
-    // 限制日志数量，避免内存溢出
-    if (updatedLogs.length > 1000) {
-      updatedLogs = updatedLogs.sublist(updatedLogs.length - 1000);
+    // 限制全量日志数量，避免内存溢出
+    if (_allLogs.length > 1000) {
+      _allLogs.removeRange(0, _allLogs.length - 1000);
     }
     
-    state = state.copyWith(logList: updatedLogs);
+    // 根据筛选状态生成视图日志
+    List<String> viewLogs;
+    if (state.filterContent.isEmpty) {
+      // 无筛选时，显示全量日志
+      viewLogs = List.from(_allLogs);
+    } else {
+      // 有筛选时，从全量日志中筛选
+      final filterText = state.isCaseSensitive ? state.filterContent : state.filterContent.toLowerCase();
+      viewLogs = _allLogs.where((log) {
+        final text = state.isCaseSensitive ? log : log.toLowerCase();
+        return text.contains(filterText);
+      }).toList();
+    }
+    
+    state = state.copyWith(logList: viewLogs);
     _pendingLogs.clear();
-    
-    
   }
   
   /// 初始化
@@ -352,16 +366,9 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
     for (var line in lines) {
       if (line.trim().isEmpty) continue;
       
-      // 应用内容筛选（只在有筛选内容时才过滤）
-      if (state.filterContent.isNotEmpty) {
-        String logText = state.isCaseSensitive ? line : line.toLowerCase();
-        String filterText = state.isCaseSensitive ? state.filterContent : state.filterContent.toLowerCase();
-        if (logText.contains(filterText)) {
-          _pendingLogs.add(line);
-        }
-      } else {
-        _pendingLogs.add(line);
-      }
+      // 不再在接收时过滤，所有日志都进入缓冲区
+      // 筛选逻辑移到 _flushPendingLogs 中处理
+      _pendingLogs.add(line);
     }
     
     // 不再立即更新状态，而是添加到缓冲区，由定时器批量更新
@@ -431,11 +438,16 @@ class AndroidLogNotifier extends StateNotifier<AndroidLogState> {
   
   /// 应用筛选
   void _applyFilter() {
-    if (state.filterContent.isEmpty) return;
+    if (state.filterContent.isEmpty) {
+      // 清空筛选时，还原全量日志
+      state = state.copyWith(logList: List.from(_allLogs));
+      return;
+    }
     
-    List<String> filteredLogs = state.logList.where((log) {
-      String logText = state.isCaseSensitive ? log : log.toLowerCase();
-      String filterText = state.isCaseSensitive ? state.filterContent : state.filterContent.toLowerCase();
+    // 有筛选时，从全量日志中筛选
+    final filterText = state.isCaseSensitive ? state.filterContent : state.filterContent.toLowerCase();
+    final filteredLogs = _allLogs.where((log) {
+      final logText = state.isCaseSensitive ? log : log.toLowerCase();
       return logText.contains(filterText);
     }).toList();
     
