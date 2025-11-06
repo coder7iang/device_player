@@ -414,11 +414,13 @@ class ScrcpyService {
           url = "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-macos-x86_64-v3.3.3.tar.gz";
         }
       } else if (Platform.isWindows) {
-        url =
-            "https://github.com/Genymobile/scrcpy/releases/download/v3.3.2/scrcpy-win64-v3.3.2.zip";
+        url = "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-win64-v3.3.2.zip";
+        // url =
+        //     "https://github.com/Genymobile/scrcpy/releases/download/v3.3.2/scrcpy-win64-v3.3.2.zip";
       } else {
-        url =
-            "https://github.com/Genymobile/scrcpy/releases/download/v3.3.2/scrcpy-linux-x86_64-v3.3.2.tar.gz";
+        url = "https://coder7iang.oss-cn-beijing.aliyuncs.com/scrcpy-linux-x86_64-v3.3.2.tar.gz";
+        // url =
+        //     "https://github.com/Genymobile/scrcpy/releases/download/v3.3.2/scrcpy-linux-x86_64-v3.3.2.tar.gz";
       }
 
       var filePath = downloadPath + "scrcpy-latest.tar.gz";
