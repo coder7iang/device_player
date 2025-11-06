@@ -4,6 +4,7 @@ import 'package:archive/archive_io.dart';
 import 'package:device_player/common/app.dart';
 import 'package:device_player/common/key_code.dart';
 import 'package:device_player/dialog/devices_model.dart';
+import 'package:device_player/dialog/smart_dialog_utils.dart';
 import 'package:device_player/entity/list_filter_item.dart';
 import 'package:dio/dio.dart';
 import 'package:file_selector/file_selector.dart';
@@ -251,13 +252,33 @@ class AdbService {
         '-s',
         currentDeviceId,
         'install',
-        '-r', // 重新安装
-        '-d', // 允许降级
+        '-t', // 重新安装
         apkPath
       ]);
-      return result != null && result.exitCode == 0;
+      
+      if (result == null) {
+        SmartDialogUtils.showError('安装 APK 失败: 无法执行 ADB 命令');
+        return false;
+      }
+      
+      if (result.exitCode != 0) {
+        // 获取错误信息
+        String errorMessage = result.stderr.toString().trim();
+        if (errorMessage.isEmpty) {
+          errorMessage = result.stdout.toString().trim();
+        }
+        if (errorMessage.isEmpty) {
+          errorMessage = '安装失败，退出码: ${result.exitCode}';
+        }
+        SmartDialogUtils.showError('安装 APK 失败: $errorMessage');
+        return false;
+      }
+      
+      return true;
     } catch (e) {
-      debugPrint('安装 APK 失败: $e');
+      String errorMsg = '安装 APK 失败: $e';
+      debugPrint(errorMsg);
+      SmartDialogUtils.showError(errorMsg);
       return false;
     }
   }

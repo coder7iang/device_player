@@ -13,7 +13,7 @@ class ConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(title ?? "提示"),
-      content: Text(content ?? ""),
+      content: SelectableText(content ?? ""),
       actions: <Widget>[
         TextButton(
           child: const Text(
