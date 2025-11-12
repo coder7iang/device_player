@@ -1,7 +1,7 @@
 name: Build & Release
 
 permissions:
-  contents: write   # 允许创建和推送 tag，以及创建 Release
+  contents: write   # 允许创建 tag 和发布 Release
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # 拉取完整历史记录，确保 git tag 正常工作
+          fetch-depth: 0   # 拉取完整历史，确保 tag 操作正常
 
       # 获取 pubspec.yaml 中的版本号
       - name: Get version from pubspec.yaml
@@ -27,7 +27,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Detected version: $VERSION"
 
-      # 检查 tag 是否已存在
+      # 检查 tag 是否存在
       - name: Check if tag exists
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
@@ -36,7 +36,7 @@ jobs:
             exit 0
           fi
 
-      # 创建 Git tag 并推送
+      # 创建 tag 并推送
       - name: Create Git tag
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
@@ -62,8 +62,23 @@ jobs:
         with:
           channel: stable
 
-      - name: Install dependencies
-        run: flutter pub get
+      # 缓存 pub-cache 依赖
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pubcache-${{ hashFiles('pubspec.lock') }}
+
+      # 下载依赖（带镜像 + 重试）
+      - name: Install dependencies (with retry)
+        run: |
+          for i in 1 2 3; do
+            flutter pub get && break || echo "Retrying ($i)..."
+            sleep 10
+          done
+        env:
+          PUB_HOSTED_URL: https://pub.flutter-io.cn
+          FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
 
       # 构建
       - name: Build Flutter app for ${{ matrix.os }}
@@ -82,7 +97,7 @@ jobs:
             cp -r build/macos/Build/Products/Release/device_player.app dist/
           fi
 
-      # 压缩打包
+      # 打包为 zip
       - name: Zip build output
         run: |
           VERSION=${{ needs.prepare.outputs.version }}
@@ -96,8 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: device_player-${{ matrix.os }}
-          path: |
-            device_player-*.zip
+          path: device_player-*.zip
 
   release:
     needs: build
