@@ -29,15 +29,18 @@ jobs:
 
       # 检查 tag 是否存在
       - name: Check if tag exists
+        id: check_tag
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
           if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-            echo "❌ Tag v${VERSION} already exists. Skip."
-            exit 0
-          fi
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "❌ Tag v${VERSION} already exists. Will skip creating tag."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
 
-      # 创建 tag 并推送
+      # 创建 Git tag（如果不存在）
       - name: Create Git tag
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
           git config user.name "github-actions"
@@ -62,7 +65,7 @@ jobs:
         with:
           channel: stable
 
-      # 缓存 pub-cache 依赖
+      # 缓存 pub-cache
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
         with:
@@ -97,7 +100,7 @@ jobs:
             cp -r build/macos/Build/Products/Release/device_player.app dist/
           fi
 
-      # 打包为 zip
+      # 压缩
       - name: Zip build output
         run: |
           VERSION=${{ needs.prepare.outputs.version }}
