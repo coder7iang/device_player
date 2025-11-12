@@ -1,0 +1,122 @@
+name: Build & Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # 读取 pubspec.yaml 版本号
+      - name: Get version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}' | cut -d'+' -f1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Detected version: $VERSION"
+
+      # 检查是否已存在 tag
+      - name: Check if tag exists
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "❌ Tag v${VERSION} already exists."
+            exit 0
+          fi
+
+      # 自动创建 tag
+      - name: Create Git tag
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+
+  build:
+    needs: prepare
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 构建三平台
+      - name: Build Flutter desktop app
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            flutter build linux --release
+            mkdir -p dist
+            cp -r build/linux/x64/release/bundle dist/device_player
+          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+            flutter build windows --release
+            mkdir -p dist
+            xcopy build\\windows\\x64\\runner\\Release dist\\device_player /E /I
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            flutter build macos --release --no-codesign
+            mkdir -p dist
+            cp -r build/macos/Build/Products/Release/device_player.app dist/
+          fi
+
+      # 压缩打包
+      - name: Zip build output
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            powershell Compress-Archive -Path dist\\* -DestinationPath device_player-${VERSION}-windows.zip
+          else
+            zip -r device_player-${VERSION}-${{ matrix.os }}.zip dist
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: device_player-${{ matrix.os }}
+          path: |
+            device_player-*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.version && format('v{0}', needs.prepare.outputs.version) }}
+          name: Release v${{ needs.prepare.outputs.version }}
+          body: |
+            🎉 **Device Player v${{ needs.prepare.outputs.version }}**
+            - 自动构建于 GitHub Actions
+            - 支持 Linux / Windows / macOS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/**/device_player-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
