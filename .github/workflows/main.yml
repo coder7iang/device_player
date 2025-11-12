@@ -1,10 +1,13 @@
 name: Build & Release
 
+permissions:
+  contents: write   # 允许创建和推送 tag，以及创建 Release
+
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
   prepare:
@@ -13,8 +16,10 @@ jobs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 拉取完整历史记录，确保 git tag 正常工作
 
-      # 读取 pubspec.yaml 版本号
+      # 获取 pubspec.yaml 中的版本号
       - name: Get version from pubspec.yaml
         id: get_version
         run: |
@@ -22,16 +27,16 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Detected version: $VERSION"
 
-      # 检查是否已存在 tag
+      # 检查 tag 是否已存在
       - name: Check if tag exists
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
           if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-            echo "❌ Tag v${VERSION} already exists."
+            echo "❌ Tag v${VERSION} already exists. Skip."
             exit 0
           fi
 
-      # 自动创建 tag
+      # 创建 Git tag 并推送
       - name: Create Git tag
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
@@ -49,6 +54,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -58,17 +65,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 构建三平台
-      - name: Build Flutter desktop app
+      # 构建
+      - name: Build Flutter app for ${{ matrix.os }}
         run: |
           if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
             flutter build linux --release
             mkdir -p dist
-            cp -r build/linux/x64/release/bundle dist/device_player
+            cp -r build/linux/x64/release/bundle/* dist/
           elif [ "${{ matrix.os }}" == "windows-latest" ]; then
             flutter build windows --release
             mkdir -p dist
-            xcopy build\\windows\\x64\\runner\\Release dist\\device_player /E /I
+            xcopy build\\windows\\x64\\runner\\Release dist\\ /E /I
           elif [ "${{ matrix.os }}" == "macos-latest" ]; then
             flutter build macos --release --no-codesign
             mkdir -p dist
@@ -96,7 +103,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download all artifacts
+      - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -104,7 +111,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.prepare.outputs.version && format('v{0}', needs.prepare.outputs.version) }}
+          tag_name: v${{ needs.prepare.outputs.version }}
           name: Release v${{ needs.prepare.outputs.version }}
           body: |
             🎉 **Device Player v${{ needs.prepare.outputs.version }}**
@@ -116,7 +123,6 @@ jobs:
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/**/device_player-*.zip
+          files: artifacts/**/device_player-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
