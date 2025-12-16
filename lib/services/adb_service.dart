@@ -42,6 +42,8 @@ class AdbService {
 
 
   /// 执行系统命令
+  /// 返回 ProcessResult 或 null（如果执行失败）
+  /// 异常信息会记录在日志中，调用方需要检查返回值并处理错误
   Future<dynamic> _exec(String executable, List<String> arguments) async {
     try {
       var shell = Shell();
@@ -49,17 +51,45 @@ class AdbService {
       return result;
     } catch (e) {
       debugPrint('执行命令异常: $e');
+      // 尝试从 ShellException 中提取 ProcessResult
+      // ShellException 可能包含 result 属性
+      try {
+        // 使用动态类型检查来获取 result
+        if (e is ShellException) {
+          // ShellException 通常有 result 属性
+          var exception = e as dynamic;
+          if (exception.result != null) {
+            return exception.result;
+          }
+        }
+      } catch (_) {
+        // 忽略提取错误
+      }
       return null;
     }
   }
 
   /// 执行 ADB 命令
+  /// 返回 ProcessResult 或 null（如果执行失败）
+  /// 如果抛出异常，会尝试从异常中提取 ProcessResult
   Future<ProcessResult?> _execAdb(List<String> arguments) async {
     try {
       var result = await _exec(adbPath, arguments);
       return result;
     } catch (e) {
       debugPrint('执行 ADB 命令异常: $e');
+      // 如果 _exec 返回 null，但抛出了异常，尝试从异常中提取 ProcessResult
+      // 某些情况下，即使抛出异常，ProcessResult 仍然可用
+      try {
+        if (e is ShellException) {
+          var exception = e as dynamic;
+          if (exception.result != null) {
+            return exception.result;
+          }
+        }
+      } catch (_) {
+        // 忽略提取错误
+      }
       return null;
     }
   }
@@ -248,21 +278,46 @@ class AdbService {
     if (apkPath.isEmpty) return false;
 
     try {
-      var result = await _execAdb([
-        '-s',
-        currentDeviceId,
-        'install',
-        '-t', // 重新安装
-        apkPath
-      ]);
+      ProcessResult? result;
+      try {
+        result = await _execAdb([
+          '-s',
+          currentDeviceId,
+          'install',
+          '-t', // 重新安装
+          apkPath
+        ]);
+      } catch (e) {
+        // 如果 _execAdb 抛出异常，尝试从异常中提取信息
+        debugPrint('执行 ADB 安装命令异常: $e');
+        String errorMsg = e.toString();
+        // 尝试从异常信息中提取 ADB 错误信息
+        if (errorMsg.contains('adb:')) {
+          // 提取 adb: 后面的错误信息
+          int adbIndex = errorMsg.indexOf('adb:');
+          String adbError = errorMsg.substring(adbIndex);
+          // 提取第一行关键错误
+          List<String> lines = adbError.split('\n');
+          if (lines.isNotEmpty) {
+            String firstLine = lines[0].trim();
+            if (firstLine.startsWith('adb:')) {
+              SmartDialogUtils.showError('安装 APK 失败: ${firstLine.substring(4).trim()}');
+              return false;
+            }
+          }
+        }
+        SmartDialogUtils.showError('安装 APK 失败: $errorMsg');
+        return false;
+      }
       
       if (result == null) {
-        SmartDialogUtils.showError('安装 APK 失败: 无法执行 ADB 命令');
+        // result 为 null 表示命令执行异常，但无法获取详细错误信息
+        SmartDialogUtils.showError('安装 APK 失败: 无法执行 ADB 命令，请检查 ADB 连接和设备状态');
         return false;
       }
       
       if (result.exitCode != 0) {
-        // 获取错误信息
+        // 获取错误信息，优先使用 stderr，其次使用 stdout
         String errorMessage = result.stderr.toString().trim();
         if (errorMessage.isEmpty) {
           errorMessage = result.stdout.toString().trim();
@@ -270,15 +325,17 @@ class AdbService {
         if (errorMessage.isEmpty) {
           errorMessage = '安装失败，退出码: ${result.exitCode}';
         }
+        // 使用错误 toast 显示原始错误信息
         SmartDialogUtils.showError('安装 APK 失败: $errorMessage');
         return false;
       }
       
       return true;
     } catch (e) {
-      String errorMsg = '安装 APK 失败: $e';
-      debugPrint(errorMsg);
-      SmartDialogUtils.showError(errorMsg);
+      String errorMsg = e.toString();
+      debugPrint('安装 APK 失败: $errorMsg');
+      // 使用错误 toast 显示原始错误信息
+      SmartDialogUtils.showError('安装 APK 失败: $errorMsg');
       return false;
     }
   }

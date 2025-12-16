@@ -154,6 +154,7 @@ class SmartDialogUtils {
     Color? textColor,
   }) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 600), // 限制最大宽度
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.black87,
@@ -168,6 +169,7 @@ class SmartDialogUtils {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
         children: [
           if (icon != null) ...[
             Icon(
@@ -185,7 +187,7 @@ class SmartDialogUtils {
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
-              maxLines: 3,
+              maxLines: 10, // 保持之前的 10 行
               overflow: TextOverflow.ellipsis,
             ),
           ),

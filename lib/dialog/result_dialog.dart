@@ -5,7 +5,11 @@ class ResultDialog extends StatefulWidget {
   final String? title;
   final String? content;
 
-  const ResultDialog({Key? key, this.title, this.content}) : super(key: key);
+  const ResultDialog({
+    Key? key,
+    this.title,
+    this.content,
+  }) : super(key: key);
 
   @override
   State<ResultDialog> createState() => _ResultDialogState();
