@@ -1,0 +1,145 @@
+name: Build & Release
+
+permissions:
+  contents: write   # 允许创建 tag 和发布 Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 拉取完整历史，确保 tag 操作正常
+
+      # 获取 pubspec.yaml 中的版本号
+      - name: Get version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}' | cut -d'+' -f1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Detected version: $VERSION"
+
+      # 检查 tag 是否存在
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "❌ Tag v${VERSION} already exists. Will skip creating tag."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+
+      # 创建 Git tag（如果不存在）
+      - name: Create Git tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+
+  build:
+    needs: prepare
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      # 缓存 pub-cache
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pubcache-${{ hashFiles('pubspec.lock') }}
+
+      # 下载依赖（带镜像 + 重试）
+      - name: Install dependencies (with retry)
+        run: |
+          for i in 1 2 3; do
+            flutter pub get && break || echo "Retrying ($i)..."
+            sleep 10
+          done
+        env:
+          PUB_HOSTED_URL: https://pub.flutter-io.cn
+          FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
+
+      # 构建
+      - name: Build Flutter app for ${{ matrix.os }}
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            flutter build linux --release
+            mkdir -p dist
+            cp -r build/linux/x64/release/bundle/* dist/
+          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+            flutter build windows --release
+            mkdir -p dist
+            xcopy build\\windows\\x64\\runner\\Release dist\\ /E /I
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            flutter build macos --release --no-codesign
+            mkdir -p dist
+            cp -r build/macos/Build/Products/Release/device_player.app dist/
+          fi
+
+      # 压缩
+      - name: Zip build output
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            powershell Compress-Archive -Path dist\\* -DestinationPath device_player-${VERSION}-windows.zip
+          else
+            zip -r device_player-${VERSION}-${{ matrix.os }}.zip dist
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: device_player-${{ matrix.os }}
+          path: device_player-*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          name: Release v${{ needs.prepare.outputs.version }}
+          body: |
+            🎉 **Device Player v${{ needs.prepare.outputs.version }}**
+            - 自动构建于 GitHub Actions
+            - 支持 Linux / Windows / macOS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/device_player-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
