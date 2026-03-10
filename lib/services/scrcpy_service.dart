@@ -55,33 +55,23 @@ class ScrcpyService {
   }
 
   /// 检查 scrcpy 是否存在
+  ///
+  /// 只使用本地保存的路径，不再从系统 PATH 自动查找。
+  /// 如果本地未配置，则自动走下载 + 配置流程。
   checkScrcpy() async {
     bool hasScrcpy = await getScrcpyPath();
     if (hasScrcpy) {
       debugPrint('已找到 scrcpy: $scrcpyPath');
       return;
     }
-    // 检查系统中是否已安装 scrcpy
-    var executable = Platform.isWindows ? "where" : "which";
-    try {
-      var result = await _exec(executable, ['scrcpy']);
-      if (result != null && result.exitCode == 0) {
-        scrcpyPath = result.stdout.toString().trim();
-        await setScrcpyPath(scrcpyPath);
-        debugPrint('系统中找到 scrcpy: $scrcpyPath');
-        return;
-      }
-    } catch (e) {
-      debugPrint('检查系统中 scrcpy 失败: $e');
-    }
-    // 系统中没有找到 scrcpy，尝试下载
-    debugPrint('系统中未找到 scrcpy，开始下载...');
+
+    debugPrint('未配置 scrcpy，开始下载并配置...');
     scrcpyPath = await downloadScrcpy();
     if (scrcpyPath.isNotEmpty) {
       await setScrcpyPath(scrcpyPath);
-      debugPrint('scrcpy 下载成功: $scrcpyPath');
+      debugPrint('scrcpy 下载并配置成功: $scrcpyPath');
     } else {
-      debugPrint('scrcpy 下载失败');
+      debugPrint('scrcpy 下载失败或未找到可执行文件');
     }
   }
 
