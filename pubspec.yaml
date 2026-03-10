@@ -47,6 +47,8 @@ dependencies:
     git: https://github.com/EaniaHuui/selector_plus.git
   system_tray: ^2.0.3
   window_manager: ^0.3.2
+  url_launcher: ^6.0.20
+  webview_flutter: ^4.13.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
