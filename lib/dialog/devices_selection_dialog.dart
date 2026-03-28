@@ -1,5 +1,7 @@
 import 'package:device_player/dialog/devices_model.dart';
 import 'package:device_player/dialog/devices_selection_provider.dart';
+import 'package:device_player/dialog/wireless_connect_dialog.dart';
+import 'package:device_player/services/adb_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -172,6 +174,11 @@ class _DeviceSelectionDialogState extends ConsumerState<DeviceSelectionDialog> {
                           final isSelected = widget.currentDevice?.id == device.id;
                           
                           return ListTile(
+                            leading: Icon(
+                              device.isWireless ? Icons.wifi : Icons.usb,
+                              color: device.isWireless ? Colors.green : Colors.grey[600],
+                              size: 22,
+                            ),
                             title: RichText(
                               text: TextSpan(
                                 children: _buildHighlightedText(
@@ -196,6 +203,25 @@ class _DeviceSelectionDialogState extends ConsumerState<DeviceSelectionDialog> {
                                 ),
                               ),
                             ),
+                            trailing: device.isWireless
+                                ? IconButton(
+                                    icon: const Icon(Icons.link_off, size: 20),
+                                    tooltip: '断开无线连接',
+                                    color: Colors.red[400],
+                                    onPressed: () async {
+                                      final parts = device.id.split(':');
+                                      await AdbService.instance
+                                          .disconnectDevice(parts[0], parts[1]);
+                                      if (widget.refreshCallback != null) {
+                                        widget.refreshCallback!();
+                                        await Future.delayed(
+                                            const Duration(milliseconds: 500));
+                                        final newDevices = widget.getCurrentDevices();
+                                        notifier.refreshDevices(newDevices);
+                                      }
+                                    },
+                                  )
+                                : null,
                             selected: isSelected,
                             selectedTileColor: Colors.blue.withValues(alpha: 0.1),
                             selectedColor: Colors.blue,
@@ -215,6 +241,22 @@ class _DeviceSelectionDialogState extends ConsumerState<DeviceSelectionDialog> {
                       Navigator.of(context).pop();
                     },
                     child: const Text("取消"),
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      var result = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => const WirelessConnectDialog(),
+                      );
+                      if (result == true && widget.refreshCallback != null) {
+                        widget.refreshCallback!();
+                        await Future.delayed(const Duration(milliseconds: 500));
+                        final newDevices = widget.getCurrentDevices();
+                        notifier.refreshDevices(newDevices);
+                      }
+                    },
+                    icon: const Icon(Icons.qr_code, size: 18),
+                    label: const Text("无线连接"),
                   ),
                   if (widget.refreshCallback != null)
                     TextButton(

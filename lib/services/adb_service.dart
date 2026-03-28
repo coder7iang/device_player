@@ -239,6 +239,73 @@ class AdbService {
     return [];
   }
 
+  /// 无线配对设备
+  /// [host] 设备IP地址，[port] 配对端口，[code] 配对码
+  Future<String> pairDevice(String host, String port, String code) async {
+    try {
+      var result = await _execAdb(['pair', '$host:$port', code]);
+      if (result != null) {
+        var stdout = result.stdout.toString().trim();
+        var stderr = result.stderr.toString().trim();
+        if (result.exitCode == 0 && stdout.contains('Successfully paired')) {
+          return '配对成功';
+        }
+        return stderr.isNotEmpty ? stderr : stdout;
+      }
+      return '配对失败：未知错误';
+    } catch (e) {
+      return '配对异常: $e';
+    }
+  }
+
+  /// 无线连接设备
+  /// [host] 设备IP地址，[port] 连接端口
+  Future<String> connectDevice(String host, String port) async {
+    try {
+      var result = await _execAdb(['connect', '$host:$port']);
+      if (result != null) {
+        var stdout = result.stdout.toString().trim();
+        var stderr = result.stderr.toString().trim();
+        if (result.exitCode == 0 && stdout.contains('connected')) {
+          return '连接成功';
+        }
+        return stderr.isNotEmpty ? stderr : stdout;
+      }
+      return '连接失败：未知错误';
+    } catch (e) {
+      return '连接异常: $e';
+    }
+  }
+
+  /// 断开无线设备
+  Future<String> disconnectDevice(String host, String port) async {
+    try {
+      var result = await _execAdb(['disconnect', '$host:$port']);
+      if (result != null) {
+        return result.stdout.toString().trim();
+      }
+      return '断开失败';
+    } catch (e) {
+      return '断开异常: $e';
+    }
+  }
+
+  /// 获取本机局域网 IP 地址
+  static Future<String> getLocalIp() async {
+    try {
+      for (var interface in await NetworkInterface.list()) {
+        for (var addr in interface.addresses) {
+          if (addr.type == InternetAddressType.IPv4 && !addr.isLoopback) {
+            return addr.address;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('获取本机IP失败: $e');
+    }
+    return '未知';
+  }
+
   /// 获取设备品牌
   Future<String> _getBrand(String device) async {
     try {
