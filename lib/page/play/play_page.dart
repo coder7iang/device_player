@@ -323,7 +323,12 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
         Expanded(
           child: _pdfController == null
               ? const SizedBox.shrink()
-              : PdfViewPinch(controller: _pdfController!),
+              : PdfViewPinch(
+                  controller: _pdfController!,
+                  backgroundDecoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 250, 250, 250),
+                  ),
+                ),
         ),
       ],
     );
