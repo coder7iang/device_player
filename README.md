@@ -1,5 +1,4 @@
-https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer.zip
-
+mac地址：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer.zip
 <img width="1920" height="1496" alt="image" src="https://github.com/user-attachments/assets/1f17fb04-8283-4bca-a728-ee25536fdabd" />
 <img width="1920" height="1496" alt="image" src="https://github.com/user-attachments/assets/92e4c899-4c90-488d-a5fd-72b1fc498dde" />
 <img width="1920" height="1496" alt="image" src="https://github.com/user-attachments/assets/851deb31-0606-48b6-b910-43a378d5bac3" />
