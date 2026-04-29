@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:device_player/page/log/android_log_page.dart';
 import 'package:device_player/page/feature/feature_page.dart';
 import 'package:device_player/page/flie/file_manager_page.dart';
@@ -8,7 +10,7 @@ import 'package:device_player/page/setting/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lottie/lottie.dart';
+import 'package:window_manager/window_manager.dart';
 
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -34,43 +36,102 @@ class _MainPageState extends ConsumerState<MainPage> {
 
     return Container(
       color: Colors.white,
-      child: Row(
-        children: <Widget>[
-          Container(
-            color: Colors.blue.withValues(alpha: 0.05),
-            width: 200,
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Image.asset("images/app_icon.png", width: 50, height: 50),
-                const SizedBox(height: 4),
-                devicesView(mainState, mainNotifier),
-                const SizedBox(height: 20),
-                _leftItem("images/ic_feature.svg", "快捷功能", 1, mainState,
-                    mainNotifier),
-                _leftItem("images/ic_folder.svg", "文件管理", 2, mainState, mainNotifier),
-                _leftItem("images/ic_log.svg", "日志管理", 3, mainState, mainNotifier),
-                _leftItem("images/ic_settings.svg", "设置页面", 4, mainState, mainNotifier),
-                const Spacer(), // 让菜单项向上，动画在底部
-                MenuAnimationWidget(
-                  onTap: () {
-                    mainNotifier.selectPage(5);
-                  },
-                ),
-              ],
-            ),
-          ),
+      child: Column(
+        children: [
+          _buildTitleBar(mainState),
           Expanded(
-            child: Column(
-              children: [
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      right: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      Image.asset("images/app_icon.png", width: 50, height: 50),
+                      const SizedBox(height: 4),
+                      devicesView(mainState, mainNotifier),
+                      const SizedBox(height: 20),
+                      _leftItem("images/ic_feature.svg", "快捷功能", 1, mainState,
+                          mainNotifier),
+                      _leftItem("images/ic_folder.svg", "文件管理", 2, mainState, mainNotifier),
+                      _leftItem("images/ic_log.svg", "日志管理", 3, mainState, mainNotifier),
+                      _leftItem("images/ic_settings.svg", "设置页面", 4, mainState, mainNotifier),
+                      const Spacer(),
+                      _buildJoyEntry(mainNotifier),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
                 Expanded(
-                  child: buildContent(mainState.selectedIndex,
-                      mainState.deviceId, mainState.adbPath),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: buildContent(mainState.selectedIndex,
+                            mainState.deviceId, mainState.adbPath),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTitleBar(MainState state) {
+    final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    if (!isDesktop) {
+      return const SizedBox.shrink();
+    }
+    return DragToMoveArea(
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: [
+            const Spacer(),
+            if (!Platform.isMacOS) ..._windowsButtons(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _windowsButtons() {
+    return [
+      _titleBarIconButton(Icons.remove, () => windowManager.minimize()),
+      _titleBarIconButton(Icons.crop_square, () async {
+        if (await windowManager.isMaximized()) {
+          await windowManager.unmaximize();
+        } else {
+          await windowManager.maximize();
+        }
+      }),
+      _titleBarIconButton(Icons.close, () => windowManager.close()),
+    ];
+  }
+
+  Widget _titleBarIconButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        width: 36,
+        height: 40,
+        child: Icon(icon, size: 16, color: const Color(0xFF555555)),
       ),
     );
   }
@@ -165,68 +226,131 @@ class _MainPageState extends ConsumerState<MainPage> {
         ),
       ),
     );
-  }
-
-
-}
-
-/// 独立的熊动画组件，避免重建时闪烁
-class MenuAnimationWidget extends StatefulWidget {
-  final VoidCallback? onTap;
-  
-  const MenuAnimationWidget({Key? key, this.onTap}) : super(key: key);
-
-  @override
-  State<MenuAnimationWidget> createState() => _MenuAnimationWidgetState();
-}
-
-class _MenuAnimationWidgetState extends State<MenuAnimationWidget>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (widget.onTap != null) {
-          widget.onTap!();
-        }
-      },
-      child: Container(
-        width: 150,
-        height: 150,
-        margin: const EdgeInsets.symmetric(horizontal: 25),
-        child: Lottie.asset(
-          'assets/animations/joystick.json',
-          fit: BoxFit.contain,
-          repeat: true,
-          animate: true,
-          frameRate: FrameRate.max,
-          controller: _animationController,
-          options: LottieOptions(
-            enableMergePaths: true,
+  }  Widget _buildJoyEntry(MainNotifier notifier) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => notifier.selectPage(5),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF7FB),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFFBCFE8)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFDB2777).withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFBCFE8)),
+                      ),
+                      child: const Icon(
+                        Icons.auto_awesome,
+                        size: 18,
+                        color: Color(0xFFDB2777),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '趣味玩一玩',
+                            style: TextStyle(
+                              color: Color(0xFF9D174D),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            '摸鱼专属小工具',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Color(0xFFBE185D),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 14,
+                      color: Color(0xFFDB2777),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _JoyChip(icon: Icons.music_note, label: '音乐'),
+                    _JoyChip(icon: Icons.restaurant, label: '转盘'),
+                    _JoyChip(icon: Icons.menu_book, label: '阅读'),
+                  ],
+                ),
+              ],
+            ),
           ),
-          onLoaded: (composition) {
-            // 动画加载完成后设置控制器
-            _animationController
-              ..duration = composition.duration
-              ..repeat();
-          },
         ),
       ),
     );
   }
+}
 
+class _JoyChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _JoyChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFFBCFE8)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: const Color(0xFFDB2777)),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF9D174D),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

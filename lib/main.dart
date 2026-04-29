@@ -69,6 +69,7 @@ void main() async {
       size: Size(960, 720),
       center: true,
       title: 'DevicePlayer',
+      titleBarStyle: TitleBarStyle.hidden,
     );
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
