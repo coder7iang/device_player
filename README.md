@@ -6,6 +6,11 @@ mac地址：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePl
 <img width="1920" height="1496" alt="image" src="https://github.com/user-attachments/assets/176989a2-fe9b-46e0-827a-3ec2abdc95d8" />
 
 
+https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer.zip
 
+
+
+
+https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer.zip
 
 
