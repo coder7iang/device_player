@@ -1,4 +1,3 @@
-Mac下载地址：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer.zip
 https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer.zip
 
 <img width="1920" height="1496" alt="image" src="https://github.com/user-attachments/assets/1f17fb04-8283-4bca-a728-ee25536fdabd" />
