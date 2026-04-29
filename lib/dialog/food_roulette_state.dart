@@ -55,12 +55,13 @@ class FoodRouletteState {
     int? selectedIndex,
     FoodItem? selectedFood,
     bool? isLoading,
+    bool clearSelectedFood = false,
   }) {
     return FoodRouletteState(
       foods: foods ?? this.foods,
       isSpinning: isSpinning ?? this.isSpinning,
       selectedIndex: selectedIndex ?? this.selectedIndex,
-      selectedFood: selectedFood ?? this.selectedFood,
+      selectedFood: clearSelectedFood ? null : (selectedFood ?? this.selectedFood),
       isLoading: isLoading ?? this.isLoading,
     );
   }

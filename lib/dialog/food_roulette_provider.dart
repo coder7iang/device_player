@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,40 +38,30 @@ class FoodRouletteNotifier extends StateNotifier<FoodRouletteState> {
     }
   }
 
-  /// 开始旋转
-  void startSpin() {
+  /// 进入旋转状态（不预抽结果）
+  void startSpinning() {
     if (state.foods.isEmpty) {
       debugPrint('食物数据为空，无法开始旋转');
       return;
     }
-    
     state = state.copyWith(
       isSpinning: true,
       selectedIndex: -1,
-      selectedFood: null,
+      clearSelectedFood: true,
     );
-    
-    debugPrint('开始旋转轮盘');
+    debugPrint('开始旋转');
   }
 
-  /// 停止旋转并选择食物
-  void stopSpin() {
-    if (state.foods.isEmpty) {
-      debugPrint('食物数据为空，无法停止旋转');
-      return;
-    }
-    
-    final random = Random();
-    final selectedIndex = random.nextInt(state.foods.length);
-    final selectedFood = state.foods[selectedIndex];
-    
+  /// 揭晓结果（动画停止时由 dialog 根据落点扇形传入 idx）
+  void revealSpin(int idx) {
+    if (idx < 0 || idx >= state.foods.length) return;
+    final selectedFood = state.foods[idx];
     state = state.copyWith(
       isSpinning: false,
-      selectedIndex: selectedIndex,
+      selectedIndex: idx,
       selectedFood: selectedFood,
     );
-    
-    debugPrint('停止旋转，选中食物: ${selectedFood.name}');
+    debugPrint('揭晓: ${selectedFood.name} (idx=$idx)');
   }
 
   /// 重新开始
@@ -80,7 +69,18 @@ class FoodRouletteNotifier extends StateNotifier<FoodRouletteState> {
     state = state.copyWith(
       isSpinning: false,
       selectedIndex: -1,
-      selectedFood: null,
+      clearSelectedFood: true,
     );
+  }
+
+  /// 替换食物列表（自定义）
+  void setCustomFoods(List<FoodItem> foods) {
+    state = state.copyWith(
+      foods: foods,
+      isSpinning: false,
+      selectedIndex: -1,
+      clearSelectedFood: true,
+    );
+    debugPrint('自定义食物列表: ${foods.length} 项');
   }
 }
