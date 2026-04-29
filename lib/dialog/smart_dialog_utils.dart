@@ -8,7 +8,6 @@ import 'package:device_player/dialog/property_list_dialog.dart';
 import 'package:device_player/dialog/recording_dialog.dart';
 import 'package:device_player/dialog/remote_control_dialog.dart';
 import 'package:device_player/dialog/result_dialog.dart';
-import 'package:device_player/dialog/coffee_reward_dialog.dart';
 import 'package:device_player/dialog/food_roulette_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -309,15 +308,6 @@ class SmartDialogUtils {
     );
     return success;
     
-  }
-
-  /// 显示咖啡奖励弹窗
-  static Future<void> showCoffeeReward() async {
-    await SmartDialog.show(
-      builder: (context) => const CoffeeRewardDialog(),
-      clickMaskDismiss: true,
-      backType: SmartBackType.block,
-    );
   }
 
   /// 显示食物轮盘弹窗
