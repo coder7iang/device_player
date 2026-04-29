@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class AboutPage extends StatelessWidget {
+class AboutPage extends StatefulWidget {
   const AboutPage({Key? key}) : super(key: key);
 
+  @override
+  State<AboutPage> createState() => _AboutPageState();
+}
+
+class _AboutPageState extends State<AboutPage> {
   static const String _appName = 'DevicePlayer';
-  static const String _version = 'v1.0.7';
   static const String _githubUrl = 'https://github.com/coder7iang/device_player';
   static const String _issuesUrl = 'https://github.com/coder7iang/device_player/issues';
+
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (!mounted) return;
+      setState(() => _version = 'v${info.version}');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +85,9 @@ class AboutPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: const Color(0xFFDBEAFE)),
             ),
-            child: const Text(
+            child: Text(
               _version,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFF1D4ED8),
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

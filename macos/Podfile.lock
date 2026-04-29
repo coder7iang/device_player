@@ -6,6 +6,8 @@ PODS:
   - file_selector_macos (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
+  - package_info_plus (0.0.1):
+    - FlutterMacOS
   - pdfx (1.0.0):
     - FlutterMacOS
   - screen_retriever (0.0.1):
@@ -31,6 +33,7 @@ DEPENDENCIES:
   - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
+  - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - pdfx (from `Flutter/ephemeral/.symlinks/plugins/pdfx/macos`)
   - screen_retriever (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -49,6 +52,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
+  package_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   pdfx:
     :path: Flutter/ephemeral/.symlinks/plugins/pdfx/macos
   screen_retriever:
@@ -71,6 +76,7 @@ SPEC CHECKSUMS:
   desktop_drop: 248706031734554504f939cab1ad4c5fbc9c9c72
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  package_info_plus: 122abb51244f66eead59ce7c9c200d6b53111779
   pdfx: 1e79f57f7a6ce2f4a4c30f21fa54d3dc82441b51
   screen_retriever: 4f97c103641aab8ce183fa5af3b87029df167936
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
