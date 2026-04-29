@@ -441,9 +441,11 @@ class AdbService {
       }
       
       var outLines = installedApp.outLines;
-      var packageList = outLines.map((e) {
-        return ListFilterItem(e.replaceAll("package:", ""));
-      }).toList();
+      var packageList = outLines
+          .where((e) => e.startsWith('package:'))
+          .map((e) => ListFilterItem(e.substring('package:'.length).trim()))
+          .where((item) => item.itemTitle.isNotEmpty)
+          .toList();
       
       packageList.sort((a, b) => a.itemTitle.compareTo(b.itemTitle));
       
