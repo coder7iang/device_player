@@ -76,17 +76,20 @@ class _FoodRouletteDialogState extends ConsumerState<FoodRouletteDialog>
   }
 
   Future<void> _openCustomDialog() async {
-    final foods = ref.read(foodRouletteProvider).foods;
-    final controller = TextEditingController(
-      text: foods.map((f) => f.name).join('\n'),
+    final current = ref.read(foodRouletteProvider);
+    final titleController = TextEditingController(text: current.title);
+    final foodsController = TextEditingController(
+      text: current.foods.map((f) => f.name).join('\n'),
     );
 
     void submit() {
-      final lines = controller.text
+      final lines = foodsController.text
           .split('\n')
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty)
           .toList();
+      final notifier = ref.read(foodRouletteProvider.notifier);
+      notifier.setTitle(titleController.text);
       if (lines.isEmpty) {
         SmartDialog.dismiss();
         return;
@@ -101,7 +104,7 @@ class _FoodRouletteDialogState extends ConsumerState<FoodRouletteDialog>
             address: '',
           ),
       ];
-      ref.read(foodRouletteProvider.notifier).setCustomFoods(newFoods);
+      notifier.setCustomFoods(newFoods);
       setState(() => _baseAngle = 0);
       SmartDialog.dismiss();
     }
@@ -116,19 +119,33 @@ class _FoodRouletteDialogState extends ConsumerState<FoodRouletteDialog>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                '自定义食物',
+                '自定义转盘',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 12),
               const Text(
-                '一行一个，留空行将被忽略',
+                '标题',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               TextField(
-                controller: controller,
-                maxLines: 12,
-                minLines: 8,
+                controller: titleController,
+                decoration: const InputDecoration(
+                  hintText: FoodRouletteState.defaultTitle,
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '选项（一行一个，留空行将被忽略）',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: foodsController,
+                maxLines: 10,
+                minLines: 6,
                 decoration: const InputDecoration(
                   hintText: '麦当劳\n肯德基\n沙县小吃',
                   border: OutlineInputBorder(),
@@ -155,7 +172,8 @@ class _FoodRouletteDialogState extends ConsumerState<FoodRouletteDialog>
         ),
       ),
     );
-    controller.dispose();
+    titleController.dispose();
+    foodsController.dispose();
   }
 
   @override
@@ -169,9 +187,10 @@ class _FoodRouletteDialogState extends ConsumerState<FoodRouletteDialog>
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text(
-              '🍽️ 今天吃什么？',
-              style: TextStyle(
+            Text(
+              state.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.orange,

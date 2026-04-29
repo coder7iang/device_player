@@ -83,4 +83,12 @@ class FoodRouletteNotifier extends StateNotifier<FoodRouletteState> {
     );
     debugPrint('自定义食物列表: ${foods.length} 项');
   }
+
+  /// 修改标题（空字符串恢复默认）
+  void setTitle(String title) {
+    final trimmed = title.trim();
+    state = state.copyWith(
+      title: trimmed.isEmpty ? FoodRouletteState.defaultTitle : trimmed,
+    );
+  }
 }

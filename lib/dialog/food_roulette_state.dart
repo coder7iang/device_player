@@ -35,11 +35,14 @@ class FoodItem {
 }
 
 class FoodRouletteState {
+  static const String defaultTitle = '🍽️ 今天吃什么？';
+
   final List<FoodItem> foods;
   final bool isSpinning;
   final int selectedIndex;
   final FoodItem? selectedFood;
   final bool isLoading;
+  final String title;
 
   FoodRouletteState({
     this.foods = const [],
@@ -47,6 +50,7 @@ class FoodRouletteState {
     this.selectedIndex = -1,
     this.selectedFood,
     this.isLoading = false,
+    this.title = defaultTitle,
   });
 
   FoodRouletteState copyWith({
@@ -55,6 +59,7 @@ class FoodRouletteState {
     int? selectedIndex,
     FoodItem? selectedFood,
     bool? isLoading,
+    String? title,
     bool clearSelectedFood = false,
   }) {
     return FoodRouletteState(
@@ -63,6 +68,7 @@ class FoodRouletteState {
       selectedIndex: selectedIndex ?? this.selectedIndex,
       selectedFood: clearSelectedFood ? null : (selectedFood ?? this.selectedFood),
       isLoading: isLoading ?? this.isLoading,
+      title: title ?? this.title,
     );
   }
 }
