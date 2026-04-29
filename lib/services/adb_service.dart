@@ -1347,4 +1347,107 @@ class AdbService {
     }
   }
 
+  /// 列出当前应用 shared_prefs 目录下的 xml 文件名
+  /// 仅 debuggable 应用可通过 run-as 访问私有目录
+  Future<List<String>> listSpFiles() async {
+    if (selectedPackage.isEmpty) return [];
+    var result = await _execAdb([
+      '-s',
+      currentDeviceId,
+      'shell',
+      "run-as $selectedPackage ls /data/data/$selectedPackage/shared_prefs/ 2>/dev/null",
+    ]);
+    if (result == null || result.exitCode != 0) {
+      debugPrint('列出 SP 文件失败: ${result?.stderr}');
+      return [];
+    }
+    var lines = result.stdout.toString().trim().split(RegExp(r'[\r\n]+'));
+    return lines
+        .map((e) => e.trim())
+        .where((e) => e.endsWith('.xml'))
+        .toList();
+  }
+
+  /// 读取指定 SP 文件内容
+  Future<String?> readSpFile(String filename) async {
+    if (selectedPackage.isEmpty || filename.isEmpty) return null;
+    var result = await _execAdb([
+      '-s',
+      currentDeviceId,
+      'shell',
+      "run-as $selectedPackage cat /data/data/$selectedPackage/shared_prefs/$filename",
+    ]);
+    if (result == null || result.exitCode != 0) {
+      debugPrint('读取 SP 文件失败: ${result?.stderr}');
+      return null;
+    }
+    return result.stdout.toString();
+  }
+
+  /// 写入指定 SP 文件内容
+  /// 流程：force-stop 应用 → 推送临时文件到 /sdcard → run-as 覆盖目标文件
+  /// force-stop 是为了避免应用进程在退出时把内存里的旧数据再写回，把我们的修改覆盖掉
+  Future<bool> writeSpFile(String filename, String xmlContent) async {
+    if (selectedPackage.isEmpty || filename.isEmpty) return false;
+    File? tempFile;
+    try {
+      // 1. 先停止应用，避免 SP 内存缓存覆盖我们的写入
+      await _execAdb([
+        '-s',
+        currentDeviceId,
+        'shell',
+        'am',
+        'force-stop',
+        selectedPackage,
+      ]);
+
+      // 2. 写本地临时文件
+      var dir = await getTemporaryDirectory();
+      tempFile = File('${dir.path}/sp_${DateTime.now().millisecondsSinceEpoch}_$filename');
+      await tempFile.writeAsString(xmlContent);
+
+      // 3. push 到设备公共目录
+      var remoteTmp = '/sdcard/dp_sp_$filename';
+      var pushResult = await _execAdb(
+          ['-s', currentDeviceId, 'push', tempFile.path, remoteTmp]);
+      if (pushResult == null || pushResult.exitCode != 0) {
+        debugPrint('SP 文件 push 失败');
+        return false;
+      }
+
+      // 4. 覆盖目标：在 run-as 外面读 /sdcard（用 shell uid，能读），
+      //    通过管道把内容送给 run-as，run-as 里只负责写入私有目录。
+      //    避免 app uid 没有外部存储权限导致的 Permission denied。
+      var copyResult = await _execAdb([
+        '-s',
+        currentDeviceId,
+        'shell',
+        "cat $remoteTmp | run-as $selectedPackage sh -c 'cat > /data/data/$selectedPackage/shared_prefs/$filename'",
+      ]);
+
+      // 5. 清理 /sdcard 临时文件（无论成功与否）
+      await _execAdb([
+        '-s',
+        currentDeviceId,
+        'shell',
+        'rm',
+        '-f',
+        remoteTmp,
+      ]);
+
+      if (copyResult == null || copyResult.exitCode != 0) {
+        debugPrint('SP 文件覆盖失败: ${copyResult?.stderr}');
+        return false;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('写入 SP 文件异常: $e');
+      return false;
+    } finally {
+      try {
+        await tempFile?.delete();
+      } catch (_) {}
+    }
+  }
+
 }

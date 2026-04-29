@@ -6,6 +6,7 @@ import 'package:device_player/services/scrcpy_service.dart';
 import 'package:device_player/entity/list_filter_item.dart';
 import 'package:device_player/dialog/package_list_provider.dart';
 import 'package:device_player/dialog/smart_dialog_utils.dart';
+import 'package:device_player/dialog/sp_edit_dialog.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -517,8 +518,35 @@ class FeatureNotifier extends StateNotifier<FeatureState> {
     }
   }
 
-  
-  
+  /// 修改 SharedPreferences
+  Future<void> editSp(BuildContext context) async {
+    if (state.deviceId.isEmpty) {
+      SmartDialogUtils.showError("设备未连接");
+      return;
+    }
+    if (state.packageName.isEmpty) {
+      SmartDialogUtils.showToast("请先选择应用");
+      return;
+    }
+    SmartDialogUtils.showLoading("正在读取SP文件列表...");
+    final files = await AdbService.instance.listSpFiles();
+    SmartDialogUtils.hideLoading();
+    if (files.isEmpty) {
+      SmartDialogUtils.showError(
+          "未找到SP文件\n仅 debuggable 应用可读取私有目录，请确认应用是 debug 包");
+      return;
+    }
+    if (!context.mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => SpEditDialog(
+        files: files,
+        packageName: state.packageName,
+      ),
+    );
+  }
+
   /// 开始录屏
   Future<void> recordScreen() async {
     await startRecordScreen();

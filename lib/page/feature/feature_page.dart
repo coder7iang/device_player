@@ -440,6 +440,10 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
         debugPrint('处理保存日志操作');
         featureNotifier.saveLog();
         break;
+      case FeatureConstants.editSp:
+        debugPrint('处理修改SP操作');
+        featureNotifier.editSp(context);
+        break;
       
       // 系统相关
       case FeatureConstants.getAndroidId:

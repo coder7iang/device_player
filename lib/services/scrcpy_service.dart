@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:device_player/common/app.dart';
 import 'package:device_player/dialog/smart_dialog_utils.dart';
+import 'package:device_player/services/adb_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:process_run/shell_run.dart';
@@ -361,9 +362,16 @@ class ScrcpyService {
         debugPrint('scrcpy 不可用');
         return false;
       }
-      
-      // 启动 scrcpy 投屏
-      var result = await _exec(scrcpyPath, []);
+
+      // 多设备时必须用 -s 指定，否则 scrcpy 会报
+      // "Multiple ADB devices ... Select a device via -s"
+      final deviceId = AdbService.instance.currentDeviceId;
+      if (deviceId.isEmpty) {
+        SmartDialogUtils.showError('未选中设备，无法投屏');
+        return false;
+      }
+
+      var result = await _exec(scrcpyPath, ['-s', deviceId]);
       return result != null && result.exitCode == 0;
     } catch (e) {
       debugPrint('启动投屏失败: $e');

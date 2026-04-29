@@ -52,18 +52,24 @@ class MainNotifier extends StateNotifier<MainState> {
     try {
       var devices = await AdbService.instance.getDeviceList();
       if (devices.isNotEmpty) {
-        state = state.copyWith(
+        // 若已选中的设备仍在列表中（按 id 匹配），保留原选择，避免刷新后回跳到第一台
+        DevicesModel? keep;
+        final prevId = state.selectedDevice?.id;
+        if (prevId != null) {
+          final idx = devices.indexWhere((d) => d.id == prevId);
+          if (idx != -1) keep = devices[idx];
+        }
+        _applySelectedDevice(
+          keep ?? devices.first,
           devicesList: devices,
-          selectedDevice: devices.first,
           selectedIndex: 1, // 设置默认页面为 FeaturePage
           isLoading: false,
           loadingText: "",
         );
       } else {
-        state = state.copyWith(
-          devicesList: [],
-          selectedDevice: null,
-          clearSelectedDevice: true,
+        _applySelectedDevice(
+          null,
+          devicesList: const [],
           selectedIndex: 1, // 没有设备时也保持显示 FeaturePage
           isLoading: false,
           loadingText: "",
@@ -76,17 +82,14 @@ class MainNotifier extends StateNotifier<MainState> {
         errorMessage: "获取设备列表异常: $e",
       );
     }
-    if (state.selectedDevice != null) {
-      AdbService.instance.currentDeviceId = state.selectedDevice!.id;
-    }
   }
 
   /// 选择设备
   void selectDevice(int index) {
     if (index >= 0 && index < state.devicesList.length) {
-      state = state.copyWith(
+      _applySelectedDevice(
+        state.devicesList[index],
         selectedIndex: index,
-        selectedDevice: state.devicesList[index],
       );
     }
   }
@@ -99,7 +102,7 @@ class MainNotifier extends StateNotifier<MainState> {
   /// 选择设备
   Future<void> devicesSelect(BuildContext context) async {
     await getDeviceList();
-    
+
     var value = await showDialog<DevicesModel>(
       context: context,
       builder: (context) => DeviceSelectionDialog(
@@ -117,11 +120,31 @@ class MainNotifier extends StateNotifier<MainState> {
       int deviceIndex =
           state.devicesList.indexWhere((device) => device.id == value.id);
       if (deviceIndex != -1) {
-        state = state.copyWith(
-          selectedDevice: value,
+        _applySelectedDevice(
+          value,
           selectedIndex: 1, // 选择设备后自动切换到功能页面
         );
       }
     }
+  }
+
+  /// 统一更新选中设备：同步 state 与 AdbService.currentDeviceId，
+  /// 避免两者不一致导致 ADB 命令仍作用在旧设备上
+  void _applySelectedDevice(
+    DevicesModel? device, {
+    List<DevicesModel>? devicesList,
+    int? selectedIndex,
+    bool? isLoading,
+    String? loadingText,
+  }) {
+    state = state.copyWith(
+      devicesList: devicesList,
+      selectedDevice: device,
+      clearSelectedDevice: device == null,
+      selectedIndex: selectedIndex,
+      isLoading: isLoading,
+      loadingText: loadingText,
+    );
+    AdbService.instance.currentDeviceId = device?.id ?? "";
   }
 }

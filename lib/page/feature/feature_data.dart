@@ -117,6 +117,11 @@ class FeatureData {
         title: "保存日志到电脑",
         operation: FeatureConstants.saveLog,
       ),
+      const FeatureButton(
+        icon: IconFont.systemProperty,
+        title: "修改SP",
+        operation: FeatureConstants.editSp,
+      ),
     ];
   }
 

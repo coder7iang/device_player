@@ -1,7 +1,9 @@
+import 'package:device_player/dialog/music_player_dialog.dart';
 import 'package:device_player/dialog/smart_dialog_utils.dart';
-import 'package:device_player/page/web/common_web_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:lottie/lottie.dart';
+import 'package:pdfx/pdfx.dart';
 
 class PlayPage extends StatefulWidget {
   const PlayPage({Key? key}) : super(key: key);
@@ -12,7 +14,8 @@ class PlayPage extends StatefulWidget {
 
 class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
-  bool _showLaborLawWeb = false;
+  bool _showLaborLawPdf = false;
+  PdfControllerPinch? _pdfController;
 
   @override
   void initState() {
@@ -23,6 +26,7 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _animationController.dispose();
+    _pdfController?.dispose();
     super.dispose();
   }
 
@@ -32,7 +36,7 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: _showLaborLawWeb ? _buildLaborLawWebView() : _buildPlayCards(),
+        child: _showLaborLawPdf ? _buildLaborLawPdfView() : _buildPlayCards(),
       ),
     );
   }
@@ -159,7 +163,7 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
         // 劳动法入口（点击后在当前区域展示网页）
         Expanded(
           child: Container(
-            margin: const EdgeInsets.only(left: 10),
+            margin: const EdgeInsets.symmetric(horizontal: 10),
             child: Container(
               height: 120,
               decoration: BoxDecoration(
@@ -181,11 +185,7 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () {
-                    setState(() {
-                      _showLaborLawWeb = true;
-                    });
-                  },
+                  onTap: _openLaborLawPdf,
                   child: const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -212,12 +212,88 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
             ),
           ),
         ),
+        // 音乐播放入口
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.only(left: 10),
+            child: Container(
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8E44AD), Color(0xFFE056FD)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withValues(alpha: 0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: _openMusicPlayer,
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.music_note,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          '🎵 音乐播放',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  /// 在当前 PlayPage 区域内展示劳动法网页（大小与 PlayPage 内容区域一致）
-  Widget _buildLaborLawWebView() {
+  void _openMusicPlayer() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const MusicPlayerDialog(),
+    );
+  }
+
+  Future<void> _openLaborLawPdf() async {
+    try {
+      _pdfController?.dispose();
+      final byteData = await rootBundle.load('assets/file/劳动法学习.pdf');
+      _pdfController = PdfControllerPinch(
+        document: PdfDocument.openData(
+          byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+        ),
+      );
+      setState(() {
+        _showLaborLawPdf = true;
+      });
+    } catch (e) {
+      SmartDialogUtils.showError('打开劳动法文档失败: $e');
+    }
+  }
+
+  Widget _buildLaborLawPdfView() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -227,8 +303,10 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 setState(() {
-                  _showLaborLawWeb = false;
+                  _showLaborLawPdf = false;
                 });
+                _pdfController?.dispose();
+                _pdfController = null;
               },
             ),
             const SizedBox(width: 8),
@@ -242,11 +320,10 @@ class _PlayPageState extends State<PlayPage> with TickerProviderStateMixin {
           ],
         ),
         const SizedBox(height: 8),
-        const Expanded(
-          child: CommonWebContent(
-            url:
-                'https://www.mohrss.gov.cn/xxgk2020/fdzdgknr/zcfg/fl/202011/t20201102_394625.html',
-          ),
+        Expanded(
+          child: _pdfController == null
+              ? const SizedBox.shrink()
+              : PdfViewPinch(controller: _pdfController!),
         ),
       ],
     );

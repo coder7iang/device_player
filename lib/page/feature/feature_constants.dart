@@ -24,6 +24,7 @@ class FeatureConstants {
   static const String getInstallPath = 'get_install_path';
   static const String saveApk = 'save_apk';
   static const String saveLog = 'save_log';
+  static const String editSp = 'edit_sp';
 
   /// 系统相关操作
   static const String getAndroidId = 'get_android_id';
