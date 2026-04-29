@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:device_player/page/about/about_page.dart';
 import 'package:device_player/page/log/android_log_page.dart';
 import 'package:device_player/page/feature/feature_page.dart';
 import 'package:device_player/page/flie/file_manager_page.dart';
@@ -62,6 +63,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                       _leftItem("images/ic_folder.svg", "文件管理", 2, mainState, mainNotifier),
                       _leftItem("images/ic_log.svg", "日志管理", 3, mainState, mainNotifier),
                       _leftItem("images/ic_settings.svg", "设置页面", 4, mainState, mainNotifier),
+                      _leftItem("images/ic_about.svg", "关于页面", 6, mainState, mainNotifier),
                       const Spacer(),
                       _buildJoyEntry(mainNotifier),
                       const SizedBox(height: 16),
@@ -147,10 +149,13 @@ class _MainPageState extends ConsumerState<MainPage> {
       return const SettingPage();
     } else if (value == 5) {
       return const PlayPage();
+    } else if (value == 6) {
+      return const AboutPage();
     } else {
       return Container();
     }
   }
+
 
   Widget _leftItem(String image, String name, int index, MainState state,
       MainNotifier notifier) {
@@ -248,69 +253,53 @@ class _MainPageState extends ConsumerState<MainPage> {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFFBCFE8)),
-                      ),
-                      child: const Icon(
-                        Icons.auto_awesome,
-                        size: 18,
-                        color: Color(0xFFDB2777),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '趣味玩一玩',
-                            style: TextStyle(
-                              color: Color(0xFF9D174D),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            '摸鱼专属小工具',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Color(0xFFBE185D),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 14,
-                      color: Color(0xFFDB2777),
-                    ),
-                  ],
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFBCFE8)),
+                  ),
+                  child: const Icon(
+                    Icons.auto_awesome,
+                    size: 18,
+                    color: Color(0xFFDB2777),
+                  ),
                 ),
-                const SizedBox(height: 10),
-                const Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    _JoyChip(icon: Icons.music_note, label: '音乐'),
-                    _JoyChip(icon: Icons.restaurant, label: '转盘'),
-                    _JoyChip(icon: Icons.menu_book, label: '阅读'),
-                  ],
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '趣味玩一玩',
+                        style: TextStyle(
+                          color: Color(0xFF9D174D),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        '摸鱼专属小工具',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Color(0xFFBE185D),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 14,
+                  color: Color(0xFFDB2777),
                 ),
               ],
             ),
@@ -321,36 +310,3 @@ class _MainPageState extends ConsumerState<MainPage> {
   }
 }
 
-class _JoyChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _JoyChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFFBCFE8)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 11, color: const Color(0xFFDB2777)),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF9D174D),
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
