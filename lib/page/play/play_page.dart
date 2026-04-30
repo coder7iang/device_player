@@ -1,5 +1,6 @@
 import 'package:device_player/dialog/music_player_dialog.dart';
 import 'package:device_player/dialog/smart_dialog_utils.dart';
+import 'package:device_player/page/play/code_rain_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdfx/pdfx.dart';
@@ -139,7 +140,7 @@ class _PlayPageState extends State<PlayPage> {
         // 音乐播放入口
         Expanded(
           child: Container(
-            margin: const EdgeInsets.only(left: 10),
+            margin: const EdgeInsets.symmetric(horizontal: 10),
             child: Container(
               height: 120,
               decoration: BoxDecoration(
@@ -188,7 +189,73 @@ class _PlayPageState extends State<PlayPage> {
             ),
           ),
         ),
+        // 装忙模式（代码雨）
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.only(left: 10),
+            child: Container(
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0F2027), Color(0xFF003B1F)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withValues(alpha: 0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: _openCodeRain,
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.terminal,
+                          color: Color(0xFF00FF88),
+                          size: 40,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          '💻 装忙模式',
+                          style: TextStyle(
+                            color: Color(0xFF00FF88),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  void _openCodeRain() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: true,
+        barrierColor: Colors.black,
+        transitionDuration: const Duration(milliseconds: 120),
+        pageBuilder: (_, __, ___) => const CodeRainPage(),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
     );
   }
 
