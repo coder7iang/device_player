@@ -444,6 +444,10 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
         debugPrint('处理修改SP操作');
         featureNotifier.editSp(context);
         break;
+      case FeatureConstants.getSignature:
+        debugPrint('处理查看签名信息操作');
+        featureNotifier.getAppSignature();
+        break;
       
       // 系统相关
       case FeatureConstants.getAndroidId:

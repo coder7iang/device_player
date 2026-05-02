@@ -518,6 +518,39 @@ class FeatureNotifier extends StateNotifier<FeatureState> {
     }
   }
 
+  /// 获取应用签名信息
+  Future<void> getAppSignature() async {
+    if (state.deviceId.isEmpty) {
+      SmartDialogUtils.showError("设备未连接");
+      return;
+    }
+    if (state.packageName.isEmpty) {
+      SmartDialogUtils.showToast("请先选择应用");
+      return;
+    }
+    SmartDialogUtils.showLoading("正在获取签名信息...");
+    try {
+      final info = await AdbService.instance.getAppSignature();
+      SmartDialogUtils.hideLoading();
+      if (info == null ||
+          (info.md5.isEmpty &&
+              info.sha1.isEmpty &&
+              info.sha256.isEmpty &&
+              info.subject.isEmpty)) {
+        SmartDialogUtils.showError(
+            "获取签名信息失败\n请确认本机已安装 JDK 且 keytool 在 PATH 中");
+        return;
+      }
+      await SmartDialogUtils.showSignatureInfoDialog(
+        info: info,
+        packageName: state.packageName,
+      );
+    } catch (e) {
+      SmartDialogUtils.hideLoading();
+      SmartDialogUtils.showError("获取签名信息失败: $e");
+    }
+  }
+
   /// 修改 SharedPreferences
   Future<void> editSp(BuildContext context) async {
     if (state.deviceId.isEmpty) {

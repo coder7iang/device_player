@@ -8,7 +8,9 @@ import 'package:device_player/dialog/property_list_dialog.dart';
 import 'package:device_player/dialog/recording_dialog.dart';
 import 'package:device_player/dialog/remote_control_dialog.dart';
 import 'package:device_player/dialog/result_dialog.dart';
+import 'package:device_player/dialog/signature_info_dialog.dart';
 import 'package:device_player/dialog/food_roulette_dialog.dart';
+import 'package:device_player/entity/app_signature_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 /// SmartDialog 工具类
@@ -316,6 +318,20 @@ class SmartDialogUtils {
       builder: (context) => const FoodRouletteDialog(),
       clickMaskDismiss: true,
       backType: SmartBackType.block,
+    );
+  }
+
+  /// 显示签名信息对话框
+  static Future<void> showSignatureInfoDialog({
+    required AppSignatureInfo info,
+    required String packageName,
+  }) async {
+    await SmartDialog.show(
+      builder: (context) => SignatureInfoDialog(
+        info: info,
+        packageName: packageName,
+      ),
+      clickMaskDismiss: true,
     );
   }
 }

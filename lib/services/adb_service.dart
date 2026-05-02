@@ -5,6 +5,7 @@ import 'package:device_player/common/app.dart';
 import 'package:device_player/common/key_code.dart';
 import 'package:device_player/dialog/devices_model.dart';
 import 'package:device_player/dialog/smart_dialog_utils.dart';
+import 'package:device_player/entity/app_signature_info.dart';
 import 'package:device_player/entity/list_filter_item.dart';
 import 'package:dio/dio.dart';
 import 'package:file_selector/file_selector.dart';
@@ -967,6 +968,281 @@ class AdbService {
       var path = installPath.outLines.first.replaceAll("package:", "");
       return path;
     }
+  }
+
+  /// 获取应用 base.apk 路径（split APK 时也能拿到主包）
+  Future<String> _getBaseApkPath() async {
+    var installPath = await _execAdb([
+      '-s',
+      currentDeviceId,
+      'shell',
+      'pm',
+      'path',
+      selectedPackage,
+    ]);
+    if (installPath == null || installPath.outLines.isEmpty) {
+      return "";
+    }
+    var paths = installPath.outLines
+        .map((e) => e.replaceAll("package:", "").trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (paths.isEmpty) return "";
+    final base = paths.firstWhere(
+      (e) => e.endsWith("/base.apk"),
+      orElse: () => paths.first,
+    );
+    return base;
+  }
+
+  /// 获取应用签名信息
+  /// 流程：取 base.apk 路径 → pull 到本地临时目录 → keytool 解析 → 删除临时文件
+  /// 依赖：本机已安装 JDK 且 keytool 在 PATH 中
+  Future<AppSignatureInfo?> getAppSignature() async {
+    if (selectedPackage.isEmpty) return null;
+    File? tempApk;
+    try {
+      final remotePath = await _getBaseApkPath();
+      if (remotePath.isEmpty) {
+        debugPrint('获取 APK 路径失败');
+        return null;
+      }
+
+      final dir = await getTemporaryDirectory();
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      final localPath = '${dir.path}${Platform.pathSeparator}'
+          '${selectedPackage}_${DateTime.now().millisecondsSinceEpoch}.apk';
+
+      final pullResult = await _execAdb([
+        '-s',
+        currentDeviceId,
+        'pull',
+        remotePath,
+        localPath,
+      ]);
+      if (pullResult == null || pullResult.exitCode != 0) {
+        debugPrint('拉取 APK 失败: ${pullResult?.stderr}');
+        return null;
+      }
+      tempApk = File(localPath);
+      if (!await tempApk.exists()) {
+        debugPrint('本地 APK 不存在');
+        return null;
+      }
+
+      // 优先使用 apksigner（支持 v1/v2/v3 签名方案），失败再回退 keytool（仅 v1）
+      final apksignerInfo = await _runApksigner(localPath);
+      if (apksignerInfo != null) {
+        return apksignerInfo;
+      }
+
+      final result = await _exec('keytool', [
+        '-printcert',
+        '-jarfile',
+        localPath,
+      ]);
+      if (result == null || result.exitCode != 0) {
+        debugPrint('keytool 执行失败: ${result?.stderr}');
+        return null;
+      }
+
+      return _parseKeytoolOutput(result.stdout.toString());
+    } catch (e) {
+      debugPrint('获取签名信息失败: $e');
+      return null;
+    } finally {
+      try {
+        await tempApk?.delete();
+      } catch (_) {}
+    }
+  }
+
+  /// 查找 apksigner 可执行文件路径
+  /// 1) PATH 中查找
+  /// 2) 从 adbPath 推导（platform-tools 同级的 build-tools/<version>/apksigner）
+  Future<String?> _findApksigner() async {
+    final isWindows = Platform.isWindows;
+    final exeName = isWindows ? 'apksigner.bat' : 'apksigner';
+
+    // 1) PATH
+    final whichExe = isWindows ? 'where' : 'which';
+    final whichResult = await _exec(whichExe, [exeName]);
+    if (whichResult != null && whichResult.exitCode == 0) {
+      final stdout = whichResult.stdout.toString().trim();
+      if (stdout.isNotEmpty) {
+        return stdout.split(RegExp(r'[\r\n]+')).first.trim();
+      }
+    }
+
+    // 2) 从 adbPath 推导 SDK 根目录
+    if (adbPath.isEmpty) return null;
+    final adbFile = File(adbPath);
+    final platformToolsDir = adbFile.parent;
+    final sdkRoot = platformToolsDir.parent;
+    final buildToolsDir =
+        Directory('${sdkRoot.path}${Platform.pathSeparator}build-tools');
+    if (!await buildToolsDir.exists()) return null;
+
+    final versionDirs = await buildToolsDir
+        .list()
+        .where((e) => e is Directory)
+        .cast<Directory>()
+        .toList();
+    if (versionDirs.isEmpty) return null;
+    // 取最新版本（按目录名字典序倒序，对 30.0.3 这种版本号有效）
+    versionDirs.sort((a, b) =>
+        b.path.split(Platform.pathSeparator).last.compareTo(
+            a.path.split(Platform.pathSeparator).last));
+    for (final d in versionDirs) {
+      final candidate = '${d.path}${Platform.pathSeparator}$exeName';
+      if (await File(candidate).exists()) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  /// 调用 apksigner verify --print-certs 解析签名（支持 v1/v2/v3）
+  Future<AppSignatureInfo?> _runApksigner(String apkPath) async {
+    final apksigner = await _findApksigner();
+    if (apksigner == null) {
+      debugPrint('未找到 apksigner');
+      return null;
+    }
+    final result =
+        await _exec(apksigner, ['verify', '--print-certs', apkPath]);
+    if (result == null) return null;
+    final stdout = result.stdout.toString();
+    // apksigner 在签名方案不全时退出码可能非 0，但输出仍然包含证书信息
+    if (stdout.isEmpty) {
+      debugPrint('apksigner 无输出: ${result.stderr}');
+      return null;
+    }
+    final info = _parseApksignerOutput(stdout);
+    // 只要有任意一个指纹就认为成功
+    if (info.md5.isEmpty && info.sha1.isEmpty && info.sha256.isEmpty) {
+      return null;
+    }
+    return info;
+  }
+
+  /// 解析 apksigner verify --print-certs 输出
+  /// 示例：
+  ///   Signer #1 certificate DN: CN=xxx, O=xxx
+  ///   Signer #1 certificate SHA-256 digest: aabbcc...
+  ///   Signer #1 certificate SHA-1 digest: aabbcc...
+  ///   Signer #1 certificate MD5 digest: aabbcc...
+  AppSignatureInfo _parseApksignerOutput(String output) {
+    String md5 = '';
+    String sha1 = '';
+    String sha256 = '';
+    String subject = '';
+
+    final lines = output.split(RegExp(r'[\r\n]+'));
+    for (final raw in lines) {
+      final line = raw.trim();
+      if (line.isEmpty) continue;
+      // 只取第一个 Signer 的证书
+      if (!line.startsWith('Signer #1 ')) continue;
+
+      if (subject.isEmpty && line.contains('certificate DN:')) {
+        final idx = line.indexOf('certificate DN:');
+        subject = line.substring(idx + 'certificate DN:'.length).trim();
+      } else if (sha256.isEmpty && line.contains('SHA-256 digest:')) {
+        final idx = line.indexOf('SHA-256 digest:');
+        sha256 = _formatHex(
+            line.substring(idx + 'SHA-256 digest:'.length).trim());
+      } else if (sha1.isEmpty && line.contains('SHA-1 digest:')) {
+        final idx = line.indexOf('SHA-1 digest:');
+        sha1 = _formatHex(
+            line.substring(idx + 'SHA-1 digest:'.length).trim());
+      } else if (md5.isEmpty && line.contains('MD5 digest:')) {
+        final idx = line.indexOf('MD5 digest:');
+        md5 = _formatHex(
+            line.substring(idx + 'MD5 digest:'.length).trim());
+      }
+    }
+
+    return AppSignatureInfo(
+      md5: md5,
+      sha1: sha1,
+      sha256: sha256,
+      subject: subject,
+    );
+  }
+
+  /// 把 apksigner 输出的连续 hex（如 aabbccdd）格式化为 AA:BB:CC:DD
+  String _formatHex(String hex) {
+    final clean = hex.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+    if (clean.isEmpty) return '';
+    final buf = StringBuffer();
+    for (int i = 0; i < clean.length; i += 2) {
+      if (i > 0) buf.write(':');
+      buf.write(clean.substring(i, i + 2 > clean.length ? clean.length : i + 2));
+    }
+    return buf.toString();
+  }
+
+  /// 解析 keytool -printcert -jarfile 输出
+  AppSignatureInfo _parseKeytoolOutput(String output) {
+    String md5 = '';
+    String sha1 = '';
+    String sha256 = '';
+    String subject = '';
+    String issuer = '';
+    String serial = '';
+    String validFrom = '';
+    String validTo = '';
+    String algorithm = '';
+
+    final lines = output.split(RegExp(r'[\r\n]+'));
+    for (final raw in lines) {
+      final line = raw.trim();
+      if (line.isEmpty) continue;
+
+      if (md5.isEmpty && line.startsWith('MD5:')) {
+        md5 = line.substring(4).trim();
+      } else if (sha1.isEmpty &&
+          (line.startsWith('SHA1:') || line.startsWith('SHA-1:'))) {
+        sha1 = line.substring(line.indexOf(':') + 1).trim();
+      } else if (sha256.isEmpty &&
+          (line.startsWith('SHA256:') || line.startsWith('SHA-256:'))) {
+        sha256 = line.substring(line.indexOf(':') + 1).trim();
+      } else if (subject.isEmpty && line.startsWith('Owner:')) {
+        subject = line.substring(6).trim();
+      } else if (issuer.isEmpty && line.startsWith('Issuer:')) {
+        issuer = line.substring(7).trim();
+      } else if (serial.isEmpty && line.startsWith('Serial number:')) {
+        serial = line.substring('Serial number:'.length).trim();
+      } else if (line.startsWith('Valid from:')) {
+        // Valid from: <date> until: <date>
+        final body = line.substring('Valid from:'.length);
+        final untilIdx = body.indexOf('until:');
+        if (untilIdx >= 0) {
+          validFrom = body.substring(0, untilIdx).trim();
+          validTo = body.substring(untilIdx + 'until:'.length).trim();
+        } else {
+          validFrom = body.trim();
+        }
+      } else if (algorithm.isEmpty &&
+          line.startsWith('Signature algorithm name:')) {
+        algorithm = line.substring('Signature algorithm name:'.length).trim();
+      }
+    }
+
+    return AppSignatureInfo(
+      md5: md5,
+      sha1: sha1,
+      sha256: sha256,
+      subject: subject,
+      issuer: issuer,
+      serialNumber: serial,
+      validFrom: validFrom,
+      validTo: validTo,
+      algorithm: algorithm,
+    );
   }
 
 

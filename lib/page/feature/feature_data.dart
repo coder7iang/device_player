@@ -122,6 +122,11 @@ class FeatureData {
         title: "修改SP",
         operation: FeatureConstants.editSp,
       ),
+      const FeatureButton(
+        icon: IconFont.signature,
+        title: "查看签名信息",
+        operation: FeatureConstants.getSignature,
+      ),
     ];
   }
 

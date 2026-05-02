@@ -41,4 +41,5 @@ class IconFont {
   static const IconData click = IconData(0xe6ca, fontFamily: "IconFont");
   static const IconData remoteControl = IconData(0xe697, fontFamily: "IconFont");
   static const IconData log = IconData(0xe658, fontFamily: "IconFont");
+  static const IconData signature = IconData(0xe66c, fontFamily: "IconFont");
 }
