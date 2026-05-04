@@ -8,8 +8,10 @@ import 'package:device_player/dialog/property_list_dialog.dart';
 import 'package:device_player/dialog/recording_dialog.dart';
 import 'package:device_player/dialog/remote_control_dialog.dart';
 import 'package:device_player/dialog/result_dialog.dart';
+import 'package:device_player/dialog/app_info_dialog.dart';
 import 'package:device_player/dialog/signature_info_dialog.dart';
 import 'package:device_player/dialog/food_roulette_dialog.dart';
+import 'package:device_player/entity/app_info.dart';
 import 'package:device_player/entity/app_signature_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -328,6 +330,20 @@ class SmartDialogUtils {
   }) async {
     await SmartDialog.show(
       builder: (context) => SignatureInfoDialog(
+        info: info,
+        packageName: packageName,
+      ),
+      clickMaskDismiss: true,
+    );
+  }
+
+  /// 显示应用信息对话框（版本号 / SDK / 权限）
+  static Future<void> showAppInfoDialog({
+    required AppInfo info,
+    required String packageName,
+  }) async {
+    await SmartDialog.show(
+      builder: (context) => AppInfoDialog(
         info: info,
         packageName: packageName,
       ),

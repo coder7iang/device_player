@@ -127,6 +127,11 @@ class FeatureData {
         title: "查看签名信息",
         operation: FeatureConstants.getSignature,
       ),
+      const FeatureButton(
+        icon: IconFont.version,
+        title: "查看应用信息",
+        operation: FeatureConstants.getAppInfo,
+      ),
     ];
   }
 

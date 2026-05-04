@@ -5,6 +5,7 @@ import 'package:device_player/common/app.dart';
 import 'package:device_player/common/key_code.dart';
 import 'package:device_player/dialog/devices_model.dart';
 import 'package:device_player/dialog/smart_dialog_utils.dart';
+import 'package:device_player/entity/app_info.dart';
 import 'package:device_player/entity/app_signature_info.dart';
 import 'package:device_player/entity/list_filter_item.dart';
 import 'package:dio/dio.dart';
@@ -968,6 +969,122 @@ class AdbService {
       var path = installPath.outLines.first.replaceAll("package:", "");
       return path;
     }
+  }
+
+  /// 获取应用完整信息：版本号、SDK 版本与请求的权限列表
+  /// 通过 `adb shell dumpsys package <pkg>` 解析
+  Future<AppInfo?> getAppInfo() async {
+    if (selectedPackage.isEmpty) return null;
+    var result = await _execAdb([
+      '-s',
+      currentDeviceId,
+      'shell',
+      'dumpsys',
+      'package',
+      selectedPackage,
+    ]);
+    if (result == null || result.exitCode != 0) {
+      return null;
+    }
+
+    String versionName = '';
+    String versionCode = '';
+    String minSdk = '';
+    String targetSdk = '';
+    String compileSdk = '';
+    final List<String> requested = [];
+    final Map<String, bool> grantedMap = {};
+
+    // dumpsys 输出有多个段：requested permissions / install permissions / runtime permissions
+    // 通过缩进/段标题判断当前段，避免同一权限被多次收录
+    String section = '';
+    for (var raw in result.outLines) {
+      final line = raw.trimRight();
+      final trimmed = line.trim();
+
+      // 解析 SDK / 版本字段
+      if (versionName.isEmpty && trimmed.startsWith('versionName=')) {
+        versionName = trimmed.substring('versionName='.length).trim();
+      }
+      // 一行可能同时包含 versionCode/minSdk/targetSdk
+      void readKv(String key, void Function(String) setter) {
+        final idx = trimmed.indexOf('$key=');
+        if (idx < 0) return;
+        final start = idx + key.length + 1;
+        final rest = trimmed.substring(start);
+        final spaceIdx = rest.indexOf(' ');
+        setter((spaceIdx >= 0 ? rest.substring(0, spaceIdx) : rest).trim());
+      }
+      if (versionCode.isEmpty) readKv('versionCode', (v) => versionCode = v);
+      if (minSdk.isEmpty) readKv('minSdk', (v) => minSdk = v);
+      if (targetSdk.isEmpty) readKv('targetSdk', (v) => targetSdk = v);
+      if (compileSdk.isEmpty) readKv('compileSdk', (v) => compileSdk = v);
+
+      // 段切换
+      if (trimmed.endsWith('permissions:')) {
+        if (trimmed.startsWith('requested permissions')) {
+          section = 'requested';
+        } else if (trimmed.startsWith('install permissions')) {
+          section = 'install';
+        } else if (trimmed.startsWith('runtime permissions')) {
+          section = 'runtime';
+        } else {
+          section = '';
+        }
+        continue;
+      }
+
+      if (section.isEmpty) continue;
+
+      // 段内容必须以缩进开头；遇到无缩进非空行说明段结束
+      if (line.isNotEmpty && !line.startsWith(' ') && !line.startsWith('\t')) {
+        section = '';
+        continue;
+      }
+      if (!trimmed.contains('permission.') && !trimmed.contains('.permission.')) {
+        continue;
+      }
+
+      // 行示例：
+      //   android.permission.INTERNET
+      //   android.permission.INTERNET: granted=true
+      final colonIdx = trimmed.indexOf(':');
+      final name =
+          (colonIdx >= 0 ? trimmed.substring(0, colonIdx) : trimmed).trim();
+      if (name.isEmpty) continue;
+
+      if (section == 'requested') {
+        if (!requested.contains(name)) requested.add(name);
+      } else {
+        // install / runtime 段携带 granted=true|false
+        final granted = trimmed.contains('granted=true');
+        // 任意一段为 true 即视为已授予
+        grantedMap[name] = (grantedMap[name] ?? false) || granted;
+        if (!requested.contains(name)) requested.add(name);
+      }
+    }
+
+    final permissions = requested
+        .map((p) => AppPermission(name: p, granted: grantedMap[p] ?? false))
+        .toList();
+
+    if (versionName.isEmpty &&
+        versionCode.isEmpty &&
+        minSdk.isEmpty &&
+        targetSdk.isEmpty &&
+        compileSdk.isEmpty &&
+        permissions.isEmpty) {
+      return null;
+    }
+
+    return AppInfo(
+      versionName: versionName,
+      versionCode: versionCode,
+      minSdk: minSdk,
+      targetSdk: targetSdk,
+      compileSdk: compileSdk,
+      permissions: permissions,
+    );
   }
 
   /// 获取应用 base.apk 路径（split APK 时也能拿到主包）

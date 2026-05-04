@@ -448,6 +448,10 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
         debugPrint('处理查看签名信息操作');
         featureNotifier.getAppSignature();
         break;
+      case FeatureConstants.getAppInfo:
+        debugPrint('处理查看应用信息操作');
+        featureNotifier.getAppInfo();
+        break;
       
       // 系统相关
       case FeatureConstants.getAndroidId:
