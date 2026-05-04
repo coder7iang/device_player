@@ -4,6 +4,7 @@ import 'package:device_player/page/feature/feature_state.dart';
 import 'package:device_player/services/adb_service.dart';
 import 'package:device_player/services/scrcpy_service.dart';
 import 'package:device_player/entity/list_filter_item.dart';
+import 'package:device_player/entity/monkey_result.dart';
 import 'package:device_player/dialog/package_list_provider.dart';
 import 'package:device_player/dialog/smart_dialog_utils.dart';
 import 'package:device_player/dialog/sp_edit_dialog.dart';
@@ -297,6 +298,95 @@ class FeatureNotifier extends StateNotifier<FeatureState> {
     SmartDialogUtils.hideLoading();
   }
   
+  /// 启动应用并执行 Monkey 测试
+  Future<void> startMonkeyTest() async {
+    if (state.deviceId.isEmpty) {
+      SmartDialogUtils.showError("设备未连接");
+      return;
+    }
+    if (state.packageName.isEmpty) {
+      SmartDialogUtils.showToast("请先选择应用");
+      return;
+    }
+    if (AdbService.instance.isMonkeyRunning) {
+      SmartDialogUtils.showWarning("Monkey 测试正在进行中");
+      return;
+    }
+
+    final input = await SmartDialogUtils.showInput(
+      title: "Monkey 测试事件数",
+      hintText: "默认 500，建议 100~5000",
+    );
+    if (input == null) return;
+    final eventCount = int.tryParse(input.trim());
+    if (eventCount == null || eventCount <= 0) {
+      SmartDialogUtils.showError("请输入大于 0 的整数");
+      return;
+    }
+
+    SmartDialogUtils.showLoading("正在启动应用...");
+    final started = await AdbService.instance.startApp();
+    SmartDialogUtils.hideLoading();
+    if (!started) {
+      SmartDialogUtils.showError("启动应用失败");
+      return;
+    }
+
+    final ok = await AdbService.instance.startMonkeyTest(eventCount: eventCount);
+    if (!ok) {
+      SmartDialogUtils.showError("Monkey 测试启动失败");
+      return;
+    }
+
+    SmartDialogUtils.showMonkeyDialog(
+      totalEvents: eventCount,
+      onStop: () async {
+        SmartDialogUtils.hideMonkeyDialog();
+        await AdbService.instance.stopMonkeyTest();
+        // 不在这里弹结果，等下面的轮询统一收尾
+      },
+    );
+
+    // 轮询监听进程结束（自然跑完 / 用户停止 / 异常都走这里）
+    () async {
+      while (AdbService.instance.isMonkeyRunning) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+      SmartDialogUtils.hideMonkeyDialog();
+      final result = AdbService.instance.lastMonkeyResult;
+      if (result == null) {
+        SmartDialogUtils.showError("Monkey 测试结束，但未拿到结果");
+        return;
+      }
+      await SmartDialogUtils.showMonkeyResultDialog(
+        result: result,
+        onSaveLog: () => _saveMonkeyLog(result),
+      );
+    }();
+  }
+
+  /// 保存 Monkey 日志到本地（产物目录：monkey_<pkg>_<ts>/）
+  Future<void> _saveMonkeyLog(MonkeyResult result) async {
+    final app = App();
+    final setSavePath = await app.getSaveFilePath();
+    String savePath = setSavePath;
+    if (savePath.isEmpty) {
+      final selected = await getDirectoryPath();
+      if (selected == null) return;
+      savePath = selected;
+    }
+
+    SmartDialogUtils.showLoading("正在保存日志...");
+    final outDir =
+        await AdbService.instance.saveMonkeyArtifacts(result, savePath);
+    SmartDialogUtils.hideLoading();
+    if (outDir.isNotEmpty) {
+      SmartDialogUtils.showSuccess("日志已保存: $outDir");
+    } else {
+      SmartDialogUtils.showError("保存日志失败");
+    }
+  }
+
   /// 停止应用
   Future<void> stopApp() async {
     if (state.packageName.isEmpty) {

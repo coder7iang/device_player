@@ -27,6 +27,7 @@ class FeatureConstants {
   static const String editSp = 'edit_sp';
   static const String getSignature = 'get_signature';
   static const String getAppInfo = 'get_app_info';
+  static const String monkeyTest = 'monkey_test';
 
   /// 系统相关操作
   static const String getAndroidId = 'get_android_id';

@@ -68,6 +68,11 @@ class FeatureData {
         operation: FeatureConstants.startApp,
       ),
       const FeatureButton(
+        icon: IconFont.rerun,
+        title: "Monkey测试",
+        operation: FeatureConstants.monkeyTest,
+      ),
+      const FeatureButton(
         icon: IconFont.stop,
         title: "停止运行",
         operation: FeatureConstants.stopApp,

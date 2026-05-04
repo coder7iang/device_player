@@ -8,6 +8,7 @@ import 'package:device_player/dialog/smart_dialog_utils.dart';
 import 'package:device_player/entity/app_info.dart';
 import 'package:device_player/entity/app_signature_info.dart';
 import 'package:device_player/entity/list_filter_item.dart';
+import 'package:device_player/entity/monkey_result.dart';
 import 'package:dio/dio.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
@@ -731,6 +732,212 @@ class AdbService {
       debugPrint('停止录屏失败: $e');
       _isRecording = false;
       return false;
+    }
+  }
+
+  Shell? _monkeyShell;
+  bool _isMonkeyRunning = false;
+  bool _monkeyStoppedManually = false;
+  bool _monkeyHasError = false;
+  String _monkeyPackage = '';
+  int _monkeyEventCount = 0;
+  DateTime? _monkeyStartedAt;
+  String _monkeyLogPath = '';
+  IOSink? _monkeyLogSink;
+  MonkeyResult? _lastMonkeyResult;
+
+  bool get isMonkeyRunning => _isMonkeyRunning;
+  MonkeyResult? get lastMonkeyResult => _lastMonkeyResult;
+
+  /// 启动 Monkey 测试
+  /// [eventCount] 事件总数；[throttleMs] 事件之间间隔毫秒数
+  /// 返回 true 表示进程已成功启动；stdout/stderr 会写入临时日志文件，结束后可在
+  /// [lastMonkeyResult] 获取统计结论。
+  Future<bool> startMonkeyTest({
+    required int eventCount,
+    int throttleMs = 300,
+  }) async {
+    if (_isMonkeyRunning) return false;
+    if (selectedPackage.isEmpty) return false;
+
+    try {
+      // 准备临时日志文件，捕获 monkey 输出（含 // CRASH: 等标记）
+      final dir = await getTemporaryDirectory();
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      _monkeyLogPath =
+          '${dir.path}${Platform.pathSeparator}monkey_${selectedPackage}_$ts.log';
+      _monkeyLogSink = File(_monkeyLogPath).openWrite();
+
+      _monkeyShell = Shell(stdout: _monkeyLogSink, stderr: _monkeyLogSink);
+      _isMonkeyRunning = true;
+      _monkeyStoppedManually = false;
+      _monkeyHasError = false;
+      _monkeyPackage = selectedPackage;
+      _monkeyEventCount = eventCount;
+      _monkeyStartedAt = DateTime.now();
+      _lastMonkeyResult = null;
+
+      _monkeyShell!.runExecutableArguments(adbPath, [
+        '-s',
+        currentDeviceId,
+        'shell',
+        'monkey',
+        '-p',
+        selectedPackage,
+        '--throttle',
+        throttleMs.toString(),
+        '--ignore-crashes',
+        '--ignore-timeouts',
+        '-v',
+        eventCount.toString(),
+      ]).then((_) {
+        debugPrint('Monkey 测试自然结束');
+      }).catchError((e) {
+        // kill() 也会走这里，靠 _monkeyStoppedManually 区分
+        debugPrint('Monkey 命令结束/异常: $e');
+        if (!_monkeyStoppedManually) _monkeyHasError = true;
+      }).whenComplete(() async {
+        await _finalizeMonkey();
+      });
+
+      // 等命令初始化一下，确认未立即失败
+      await Future.delayed(const Duration(milliseconds: 500));
+      return _isMonkeyRunning;
+    } catch (e) {
+      debugPrint('启动 Monkey 失败: $e');
+      _isMonkeyRunning = false;
+      try {
+        await _monkeyLogSink?.close();
+      } catch (_) {}
+      _monkeyLogSink = null;
+      return false;
+    }
+  }
+
+  /// 收尾：关闭日志文件、解析输出、构造 MonkeyResult
+  Future<void> _finalizeMonkey() async {
+    try {
+      await _monkeyLogSink?.close();
+    } catch (_) {}
+    _monkeyLogSink = null;
+
+    final elapsed = _monkeyStartedAt != null
+        ? DateTime.now().difference(_monkeyStartedAt!)
+        : Duration.zero;
+
+    String output = '';
+    try {
+      final f = File(_monkeyLogPath);
+      if (await f.exists()) {
+        output = await f.readAsString();
+      }
+    } catch (_) {}
+
+    final crashCount = RegExp(r'// CRASH:').allMatches(output).length;
+    final anrCount = RegExp(r'// NOT RESPONDING:').allMatches(output).length;
+
+    final status = _monkeyHasError
+        ? MonkeyStatus.error
+        : _monkeyStoppedManually
+            ? MonkeyStatus.stopped
+            : MonkeyStatus.completed;
+
+    _lastMonkeyResult = MonkeyResult(
+      packageName: _monkeyPackage,
+      totalEvents: _monkeyEventCount,
+      elapsed: elapsed,
+      status: status,
+      crashCount: crashCount,
+      anrCount: anrCount,
+      logPath: _monkeyLogPath,
+    );
+
+    _isMonkeyRunning = false;
+    _monkeyShell = null;
+  }
+
+  /// 停止 Monkey 测试
+  /// 先 kill 本地 Shell（关掉 adb 通道），再在设备上 pkill 兜底（避免 monkey 脱离父进程继续跑）
+  Future<void> stopMonkeyTest() async {
+    if (!_isMonkeyRunning && _monkeyShell == null) return;
+    _monkeyStoppedManually = true;
+    try {
+      _monkeyShell?.kill();
+    } catch (_) {}
+
+    try {
+      await _execAdb([
+        '-s',
+        currentDeviceId,
+        'shell',
+        'pkill',
+        '-l',
+        '9',
+        'com.android.commands.monkey',
+      ]);
+    } catch (e) {
+      debugPrint('设备端 pkill monkey 失败: $e');
+    }
+  }
+
+  /// 把一次 Monkey 测试产物（stdout 日志 + 设备 crash buffer）保存到目录
+  /// 成功返回真实保存目录，失败返回空字符串
+  Future<String> saveMonkeyArtifacts(
+    MonkeyResult result,
+    String savePath,
+  ) async {
+    if (savePath.isEmpty) return '';
+    try {
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final dirName = 'monkey_${result.packageName}_$ts';
+      final outDir = Directory('$savePath${Platform.pathSeparator}$dirName');
+      if (!await outDir.exists()) {
+        await outDir.create(recursive: true);
+      }
+
+      // 1) Monkey stdout
+      if (result.logPath.isNotEmpty) {
+        final src = File(result.logPath);
+        if (await src.exists()) {
+          await src.copy(
+            '${outDir.path}${Platform.pathSeparator}monkey_stdout.log',
+          );
+        }
+      }
+
+      // 2) 设备 crash buffer
+      final crashLog = await _execAdb([
+        '-s',
+        currentDeviceId,
+        'logcat',
+        '-d',
+        '-b',
+        'crash',
+      ]);
+      if (crashLog != null && crashLog.exitCode == 0) {
+        await File('${outDir.path}${Platform.pathSeparator}logcat_crash.log')
+            .writeAsString(crashLog.stdout.toString());
+      }
+
+      // 3) 主 buffer 最近输出（按包名过滤需要 pid，简单起见先全量 dump）
+      final mainLog = await _execAdb([
+        '-s',
+        currentDeviceId,
+        'logcat',
+        '-d',
+      ]);
+      if (mainLog != null && mainLog.exitCode == 0) {
+        await File('${outDir.path}${Platform.pathSeparator}logcat_main.log')
+            .writeAsString(mainLog.stdout.toString());
+      }
+
+      return outDir.path;
+    } catch (e) {
+      debugPrint('保存 Monkey 日志失败: $e');
+      return '';
     }
   }
 

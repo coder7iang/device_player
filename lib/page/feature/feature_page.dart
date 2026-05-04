@@ -400,6 +400,10 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
         debugPrint('处理启动应用操作');
         featureNotifier.startApp();
         break;
+      case FeatureConstants.monkeyTest:
+        debugPrint('处理 Monkey 测试操作');
+        featureNotifier.startMonkeyTest();
+        break;
       case FeatureConstants.stopApp:
         debugPrint('处理停止应用操作');
         featureNotifier.stopApp();

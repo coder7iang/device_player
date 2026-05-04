@@ -9,10 +9,13 @@ import 'package:device_player/dialog/recording_dialog.dart';
 import 'package:device_player/dialog/remote_control_dialog.dart';
 import 'package:device_player/dialog/result_dialog.dart';
 import 'package:device_player/dialog/app_info_dialog.dart';
+import 'package:device_player/dialog/monkey_dialog.dart';
+import 'package:device_player/dialog/monkey_result_dialog.dart';
 import 'package:device_player/dialog/signature_info_dialog.dart';
 import 'package:device_player/dialog/food_roulette_dialog.dart';
 import 'package:device_player/entity/app_info.dart';
 import 'package:device_player/entity/app_signature_info.dart';
+import 'package:device_player/entity/monkey_result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 /// SmartDialog 工具类
@@ -348,6 +351,40 @@ class SmartDialogUtils {
         packageName: packageName,
       ),
       clickMaskDismiss: true,
+    );
+  }
+
+  /// 显示 Monkey 测试进行中对话框
+  static void showMonkeyDialog({
+    required int totalEvents,
+    required VoidCallback onStop,
+  }) {
+    SmartDialog.show(
+      builder: (context) => MonkeyDialog(
+        totalEvents: totalEvents,
+        onStop: onStop,
+      ),
+      backType: SmartBackType.block,
+      clickMaskDismiss: false,
+    );
+  }
+
+  /// 隐藏 Monkey 测试对话框
+  static void hideMonkeyDialog() {
+    SmartDialog.dismiss();
+  }
+
+  /// 显示 Monkey 测试结果对话框
+  static Future<void> showMonkeyResultDialog({
+    required MonkeyResult result,
+    required VoidCallback onSaveLog,
+  }) async {
+    await SmartDialog.show(
+      builder: (context) => MonkeyResultDialog(
+        result: result,
+        onSaveLog: onSaveLog,
+      ),
+      clickMaskDismiss: false,
     );
   }
 }
