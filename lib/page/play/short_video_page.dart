@@ -64,6 +64,7 @@ class _VideoItemState extends State<_VideoItem> {
   bool _initialized = false;
   bool _hasError = false;
   bool _showOverlay = false;
+  double? _dragValue; // 拖动中以本地值显示，避免被播放进度顶回
 
   @override
   void initState() {
@@ -196,18 +197,7 @@ class _VideoItemState extends State<_VideoItem> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: VideoProgressIndicator(
-                          c,
-                          allowScrubbing: true,
-                          colors: const VideoProgressColors(
-                            playedColor: Colors.white,
-                            bufferedColor: Colors.white24,
-                            backgroundColor: Colors.white12,
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                      ),
+                      Expanded(child: _buildScrubber(c)),
                       const SizedBox(width: 8),
                       Text(
                         _fmtDuration(c.value.duration),
@@ -224,6 +214,44 @@ class _VideoItemState extends State<_VideoItem> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScrubber(VideoPlayerController c) {
+    final totalMs = c.value.duration.inMilliseconds;
+    final maxValue = totalMs > 0 ? totalMs.toDouble() : 1.0;
+    final posMs =
+        c.value.position.inMilliseconds.toDouble().clamp(0.0, maxValue);
+    final value = _dragValue ?? posMs;
+    return SliderTheme(
+      data: SliderThemeData(
+        trackHeight: 2,
+        activeTrackColor: Colors.white,
+        inactiveTrackColor: Colors.white24,
+        thumbColor: Colors.white,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+        // 鼠标悬停 / 按下时围绕 thumb 出现的圆环 —— "圆圈放大"效果
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+        overlayColor: Colors.white.withValues(alpha: 0.25),
+        trackShape: const RoundedRectSliderTrackShape(),
+      ),
+      child: Slider(
+        min: 0,
+        max: maxValue,
+        value: value.clamp(0.0, maxValue),
+        onChanged: totalMs <= 0
+            ? null
+            : (v) {
+                setState(() => _dragValue = v);
+              },
+        onChangeEnd: totalMs <= 0
+            ? null
+            : (v) async {
+                await c.seekTo(Duration(milliseconds: v.toInt()));
+                if (!mounted) return;
+                setState(() => _dragValue = null);
+              },
       ),
     );
   }
