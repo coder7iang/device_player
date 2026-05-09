@@ -30,6 +30,7 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
     _collapseStates = {
       'common': true,    // 常用功能
       'app': true,       // 应用相关
+      'network': true,   // 网络调试
       'system': true,    // 系统相关
       'key': true,       // 按键相关
       'screen': true,    // 屏幕输入
@@ -92,6 +93,14 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
                           buttons: FeatureData.getAppFeatures(),
                           featureState: featureState,
                           showPackageSelector: true,
+                          featureNotifier: featureNotifier,
+                        ),
+                        // 网络调试
+                        _buildFeatureCardView(
+                          category: 'network',
+                          title: "网络调试",
+                          buttons: FeatureData.getNetworkFeatures(),
+                          featureState: featureState,
                           featureNotifier: featureNotifier,
                         ),
                         // 系统相关
@@ -451,6 +460,12 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
       case FeatureConstants.getSignature:
         debugPrint('处理查看签名信息操作');
         featureNotifier.getAppSignature();
+        break;
+
+      // 网络调试
+      case FeatureConstants.proxySetup:
+        debugPrint('处理代理调试操作');
+        featureNotifier.openProxySetup();
         break;
       case FeatureConstants.getAppInfo:
         debugPrint('处理查看应用信息操作');

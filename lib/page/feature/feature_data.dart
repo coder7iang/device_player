@@ -140,6 +140,17 @@ class FeatureData {
     ];
   }
 
+  /// 网络调试
+  static List<FeatureButton> getNetworkFeatures() {
+    return [
+      const FeatureButton(
+        icon: IconFont.ip,
+        title: "代理调试",
+        operation: FeatureConstants.proxySetup,
+      ),
+    ];
+  }
+
   /// 系统相关
   static List<FeatureButton> getSystemFeatures() {
     return [

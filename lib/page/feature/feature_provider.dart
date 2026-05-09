@@ -608,6 +608,15 @@ class FeatureNotifier extends StateNotifier<FeatureState> {
     }
   }
 
+  /// 打开代理调试对话框
+  Future<void> openProxySetup() async {
+    if (state.deviceId.isEmpty) {
+      SmartDialogUtils.showError("设备未连接");
+      return;
+    }
+    await SmartDialogUtils.showProxySetupDialog();
+  }
+
   /// 获取应用签名信息
   Future<void> getAppSignature() async {
     if (state.deviceId.isEmpty) {

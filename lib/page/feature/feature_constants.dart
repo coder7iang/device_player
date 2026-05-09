@@ -48,6 +48,9 @@ class FeatureConstants {
   static const String pressSwitchApp = 'press_switch_app';
   static const String remoteControl = 'remote_control';
 
+  /// 网络调试操作
+  static const String proxySetup = 'proxy_setup';
+
   /// 屏幕输入操作
   static const String swipeUp = 'swipe_up';
   static const String swipeDown = 'swipe_down';

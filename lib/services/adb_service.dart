@@ -1645,6 +1645,55 @@ class AdbService {
   }
 
 
+  /// 设置设备 HTTP/HTTPS 代理（让设备所有联网走 host:port）
+  Future<bool> setHttpProxy(String host, String port) async {
+    if (host.isEmpty || port.isEmpty) return false;
+    var result = await _execAdb([
+      '-s',
+      currentDeviceId,
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'http_proxy',
+      '$host:$port',
+    ]);
+    return result != null && result.exitCode == 0;
+  }
+
+  /// 取消设备 HTTP 代理
+  Future<bool> clearHttpProxy() async {
+    var result = await _execAdb([
+      '-s',
+      currentDeviceId,
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'http_proxy',
+      ':0',
+    ]);
+    return result != null && result.exitCode == 0;
+  }
+
+  /// 获取当前设备的 HTTP 代理设置（未设置时返回空字符串）
+  Future<String> getHttpProxy() async {
+    var result = await _execAdb([
+      '-s',
+      currentDeviceId,
+      'shell',
+      'settings',
+      'get',
+      'global',
+      'http_proxy',
+    ]);
+    if (result == null || result.exitCode != 0) return '';
+    var stdout = result.stdout.toString().trim();
+    // settings get 未设置时返回字面量 'null' 或 ':0'
+    if (stdout.isEmpty || stdout == 'null' || stdout == ':0') return '';
+    return stdout;
+  }
+
   /// 重启手机
   Future<bool> reboot() async {
     var result = await _execAdb([

@@ -5,6 +5,7 @@ import 'package:device_player/dialog/input_dialog.dart';
 import 'package:device_player/entity/list_filter_item.dart';
 import 'package:device_player/dialog/package_list_dialog.dart';
 import 'package:device_player/dialog/property_list_dialog.dart';
+import 'package:device_player/dialog/proxy_setup_dialog.dart';
 import 'package:device_player/dialog/recording_dialog.dart';
 import 'package:device_player/dialog/remote_control_dialog.dart';
 import 'package:device_player/dialog/result_dialog.dart';
@@ -323,6 +324,14 @@ class SmartDialogUtils {
       builder: (context) => const FoodRouletteDialog(),
       clickMaskDismiss: true,
       backType: SmartBackType.block,
+    );
+  }
+
+  /// 显示代理调试对话框
+  static Future<void> showProxySetupDialog() async {
+    await SmartDialog.show(
+      builder: (context) => const ProxySetupDialog(),
+      clickMaskDismiss: true,
     );
   }
 
