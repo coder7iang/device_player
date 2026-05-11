@@ -1645,71 +1645,6 @@ class AdbService {
   }
 
 
-  /// 设置设备 HTTP/HTTPS 代理（让设备所有联网走 host:port）
-  Future<bool> setHttpProxy(String host, String port) async {
-    if (host.isEmpty || port.isEmpty) return false;
-    var result = await _execAdb([
-      '-s',
-      currentDeviceId,
-      'shell',
-      'settings',
-      'put',
-      'global',
-      'http_proxy',
-      '$host:$port',
-    ]);
-    return result != null && result.exitCode == 0;
-  }
-
-  /// 取消设备 HTTP 代理
-  Future<bool> clearHttpProxy() async {
-    var result = await _execAdb([
-      '-s',
-      currentDeviceId,
-      'shell',
-      'settings',
-      'put',
-      'global',
-      'http_proxy',
-      ':0',
-    ]);
-    return result != null && result.exitCode == 0;
-  }
-
-  /// 在手机上后台调度一个延时清代理任务
-  /// 方案：nohup + 全 IO 重定向 + 末尾 & 真正 daemonize；marker 文件做 token 校验
-  /// 这样：1) adb shell 立即返回 2) ADB 断开 sleep 仍存活 3) 后续可通过删 marker 取消
-  Future<bool> scheduleProxyClear(int seconds) async {
-    if (seconds <= 0) return false;
-    const marker = '/data/local/tmp/dp_proxy_revert.marker';
-    final token = DateTime.now().millisecondsSinceEpoch.toString();
-    final inner = 'echo $token > $marker; '
-        'sleep $seconds; '
-        'if [ "\$(cat $marker 2>/dev/null)" = "$token" ]; then '
-        'settings put global http_proxy :0; '
-        'rm -f $marker; '
-        'fi';
-    final cmd = "nohup sh -c '$inner' </dev/null >/dev/null 2>&1 &";
-    final result = await _execAdb([
-      '-s',
-      currentDeviceId,
-      'shell',
-      cmd,
-    ]).timeout(const Duration(seconds: 2), onTimeout: () => null);
-    // 即使 timeout，后台进程也已 fork，认为成功
-    return result == null || result.exitCode == 0;
-  }
-
-  /// 取消已调度的清代理任务（通过删除 marker 让 sleep 醒来时跳过 clear）
-  Future<void> cancelScheduledProxyClear() async {
-    await _execAdb([
-      '-s',
-      currentDeviceId,
-      'shell',
-      'rm -f /data/local/tmp/dp_proxy_revert.marker',
-    ]).timeout(const Duration(seconds: 2), onTimeout: () => null);
-  }
-
   /// 打开手机的 WiFi 设置页面（用于手动配置 WiFi 专属代理）
   Future<bool> openWifiSettings() async {
     var result = await _execAdb([
@@ -1722,24 +1657,6 @@ class AdbService {
       'android.settings.WIFI_SETTINGS',
     ]);
     return result != null && result.exitCode == 0;
-  }
-
-  /// 获取当前设备的 HTTP 代理设置（未设置时返回空字符串）
-  Future<String> getHttpProxy() async {
-    var result = await _execAdb([
-      '-s',
-      currentDeviceId,
-      'shell',
-      'settings',
-      'get',
-      'global',
-      'http_proxy',
-    ]);
-    if (result == null || result.exitCode != 0) return '';
-    var stdout = result.stdout.toString().trim();
-    // settings get 未设置时返回字面量 'null' 或 ':0'
-    if (stdout.isEmpty || stdout == 'null' || stdout == ':0') return '';
-    return stdout;
   }
 
   /// 重启手机
