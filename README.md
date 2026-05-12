@@ -1,4 +1,4 @@
-mac地址：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer_v1.0.9.zip
+mac地址：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer_v1.1.0.zip
 
 ## macOS 首次打开提示
 
