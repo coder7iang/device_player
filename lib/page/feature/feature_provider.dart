@@ -127,7 +127,9 @@ class FeatureNotifier extends StateNotifier<FeatureState> {
     // 显示文本输入对话框
     String? text = await SmartDialogUtils.showInput(
       title: "输入文本",
-      hintText: "请输入要发送的文本",
+      hintText: "请输入要发送到手机的文本",
+      helperText: "ADB 仅支持英文/数字/符号，中文、Emoji、换行不会传到手机",
+      submitLabel: "发送到手机",
     );
     if (text == null || text.isEmpty) return;
     
@@ -136,12 +138,12 @@ class FeatureNotifier extends StateNotifier<FeatureState> {
       // 执行 ADB 输入文本命令（自动获取当前设备）
       final success = await AdbService.instance.inputText(text);
       if (success) {
-        SmartDialogUtils.showSuccess("文本输入成功: $text");
+        SmartDialogUtils.showSuccess("发送成功");
       } else {
-        SmartDialogUtils.showError("文本输入失败: $text");
+        SmartDialogUtils.showError("发送失败");
       }
     } catch (e) {
-      SmartDialogUtils.showError("文本输入失败: $text");
+      SmartDialogUtils.showError("发送失败");
       debugPrint("文本输入失败: $e");
     }
     SmartDialogUtils.hideLoading();
@@ -989,9 +991,7 @@ class FeatureNotifier extends StateNotifier<FeatureState> {
       return;
     }
 
-    String? text = await SmartDialogUtils.showInputDialog(
-      title: "请输入坐标", hintText: "x,y"
-    );
+    String? text = await SmartDialogUtils.showCoordinateInputDialog();
     if (text == null || text.isEmpty) return;
     AdbService.instance.pressScreen(text);
   }

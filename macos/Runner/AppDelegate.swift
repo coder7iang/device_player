@@ -13,14 +13,28 @@ class AppDelegate: FlutterAppDelegate {
         return false
     }
     
-    // 点击程序坞图标时，如果没有可见窗口，则重新显示主窗口
+    // 点击程序坞图标时，恢复被 hide()/orderOut 隐藏的主窗口
+    // macOS 13+ 上只 makeKeyAndOrderFront 不够，需要 deminiaturize + orderFrontRegardless + activate 三连
     override func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag {
             for window in sender.windows {
+                window.deminiaturize(self)
                 window.makeKeyAndOrderFront(self)
+                window.orderFrontRegardless()
             }
+            NSApp.activate(ignoringOtherApps: true)
         }
         return true
+    }
+
+    // 通过 Cmd+H 或 NSApp.hide 把整个 App 隐藏后再点 dock 时，
+    // 系统会发 unhide 而不是 reopen——这里同样把窗口顶到前面
+    override func applicationDidUnhide(_ notification: Notification) {
+        super.applicationDidUnhide(notification)
+        for window in NSApp.windows {
+            window.makeKeyAndOrderFront(self)
+        }
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {

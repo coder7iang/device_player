@@ -81,6 +81,15 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
         }
       }
       
+      // 排序：文件夹优先，组内按文件名不区分大小写字母序
+      fileList.sort((a, b) {
+        final aIsFolder = a.type == typeFolder;
+        final bIsFolder = b.type == typeFolder;
+        if (aIsFolder && !bIsFolder) return -1;
+        if (!aIsFolder && bIsFolder) return 1;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+
       state = state.copyWith(
         files: fileList,
         isLoading: false,
@@ -181,10 +190,21 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
   /// 删除文件
   Future<void> deleteFile(int index) async {
     if (index < 0 || index >= state.files.length) return;
-    
-    var success = await AdbService.instance.deleteFile(state.currentPath + state.files[index].name);
-    
-    
+    final file = state.files[index];
+    final isFolder = file.type == typeFolder;
+
+    // 二次确认，避免误删
+    final confirmed = await SmartDialogUtils.showConfirm(
+      title: isFolder ? '删除文件夹' : '删除文件',
+      content: '确定删除 "${file.name}" ?\n此操作不可撤销。',
+    );
+    if (!confirmed) return;
+
+    SmartDialogUtils.showLoading('正在删除...');
+    final success = await AdbService.instance
+        .deleteFile(state.currentPath + file.name);
+    SmartDialogUtils.hideLoading();
+
     if (success) {
       // 从列表中移除文件
       List<FileModel> newFiles = List.from(state.files);
@@ -195,36 +215,37 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
       SmartDialogUtils.showError("删除失败");
     }
   }
-  
+
   /// 保存文件到电脑
   Future<void> saveFile(int index) async {
     if (index < 0 || index >= state.files.length) return;
-    
+    final file = state.files[index];
+
     // 尝试获取设置的保存路径
     final app = App();
     final setSavePath = await app.getSaveFilePath();
     String? savePath;
-    
+
     if (setSavePath.isNotEmpty) {
       // 使用设置的保存路径
-      savePath = setSavePath + "/" + state.files[index].name;
+      savePath = setSavePath + "/" + file.name;
     } else {
       // 如果没有设置保存路径，让用户选择
-      var saveLocation = await getSaveLocation(
-        suggestedName: state.files[index].name
-      );
-      
+      var saveLocation = await getSaveLocation(suggestedName: file.name);
       if (saveLocation == null) return;
       savePath = saveLocation.path;
     }
-    
+
     if (savePath.isEmpty) {
       SmartDialogUtils.showError("无法获取文件保存路径");
       return;
     }
-    
-    var success = await AdbService.instance.pullFile(state.currentPath + state.files[index].name, savePath);
-    
+
+    SmartDialogUtils.showLoading('正在保存到电脑...');
+    final success = await AdbService.instance
+        .pullFile(state.currentPath + file.name, savePath);
+    SmartDialogUtils.hideLoading();
+
     if (success) {
       SmartDialogUtils.showSuccess("保存成功");
     } else {
@@ -257,9 +278,40 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
           Overlay.of(context).context.findRenderObject() as RenderBox?;
       final menuItem = await showMenu<int>(
           context: context,
+          constraints: const BoxConstraints(
+            minWidth: 0,
+            maxWidth: 140,
+          ),
           items: [
-            const PopupMenuItem(child: Text('删除'), value: 1),
-            const PopupMenuItem(child: Text('保存至电脑'), value: 2),
+            const PopupMenuItem(
+              value: 2,
+              height: 32,
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.save_alt, size: 14, color: Color(0xFF3B82F6)),
+                  SizedBox(width: 6),
+                  Text('保存至电脑', style: TextStyle(fontSize: 13)),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 1,
+              height: 32,
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.delete_outline,
+                      size: 14, color: Color(0xFFEF4444)),
+                  SizedBox(width: 6),
+                  Text('删除',
+                      style: TextStyle(
+                          fontSize: 13, color: Color(0xFFEF4444))),
+                ],
+              ),
+            ),
           ],
           position: RelativeRect.fromSize(
               event.position & const Size(48.0, 48.0),

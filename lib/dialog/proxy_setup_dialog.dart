@@ -88,7 +88,7 @@ class _ProxySetupDialogState extends State<ProxySetupDialog> {
     final ok = await AdbService.instance.inputText(trimmed);
     if (!mounted) return;
     if (ok) {
-      SmartDialogUtils.showSuccess('已输入到手机: $trimmed');
+      SmartDialogUtils.showSuccess('已发送');
     } else {
       SmartDialogUtils.showError('发送失败，请确认手机焦点在输入框');
     }

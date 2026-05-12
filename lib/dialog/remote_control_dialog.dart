@@ -15,31 +15,31 @@ class RemoteControlDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      content: KeyboardListener(
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: KeyboardListener(
         focusNode: FocusNode(),
         autofocus: true,
         onKeyEvent: keyboardListener,
-        child: Stack(
-          children: [
-            buildCloseView(context),
-            Padding(
-              padding: const EdgeInsets.all(50),
-              child: SizedBox(
-                width: 300,
-                height: 480,
-                child: Column(
-                  children: [
-                    _buildDirectionWidget(),
-                    const SizedBox(height: 20),
-                    _buildVolumeWidget(),
-                    const SizedBox(height: 20),
-                    _buildManagerWidget(),
-                  ],
-                ),
+        child: Container(
+          width: 240,
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: buildCloseView(context),
               ),
-            ),
-          ],
+              _buildDirectionWidget(),
+              const SizedBox(height: 12),
+              _buildVolumeWidget(),
+              const SizedBox(height: 12),
+              _buildManagerWidget(),
+            ],
+          ),
         ),
       ),
     );
@@ -47,8 +47,8 @@ class RemoteControlDialog extends StatelessWidget {
 
   Widget _buildDirectionWidget() {
     return Container(
-      height: 280,
-      width: 280,
+      height: 200,
+      width: 200,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(150),
@@ -56,8 +56,8 @@ class RemoteControlDialog extends StatelessWidget {
       child: Column(
         children: [
           buildDirectionView(
-            width: 80,
-            height: 80,
+            width: 56,
+            height: 56,
             icon: Icons.keyboard_arrow_up,
             radius: BorderRadius.circular(80),
             onTap: () {
@@ -68,8 +68,8 @@ class RemoteControlDialog extends StatelessWidget {
             child: Row(
               children: [
                 buildDirectionView(
-                  width: 80,
-                  height: 80,
+                  width: 56,
+                  height: 56,
                   radius: BorderRadius.circular(80),
                   icon: Icons.keyboard_arrow_left,
                   onTap: () {
@@ -78,8 +78,8 @@ class RemoteControlDialog extends StatelessWidget {
                 ),
                 buildOKButton(),
                 buildDirectionView(
-                  width: 80,
-                  height: 80,
+                  width: 56,
+                  height: 56,
                   radius: BorderRadius.circular(80),
                   icon: Icons.keyboard_arrow_right,
                   onTap: () {
@@ -90,8 +90,8 @@ class RemoteControlDialog extends StatelessWidget {
             ),
           ),
           buildDirectionView(
-            width: 80,
-            height: 80,
+            width: 56,
+            height: 56,
             radius: BorderRadius.circular(80),
             icon: Icons.keyboard_arrow_down,
             onTap: () {
@@ -105,8 +105,8 @@ class RemoteControlDialog extends StatelessWidget {
 
   Widget _buildVolumeWidget() {
     return Container(
-      width: 250,
-      height: 60,
+      width: 200,
+      height: 44,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(60),
@@ -115,8 +115,8 @@ class RemoteControlDialog extends StatelessWidget {
         children: [
           Expanded(
             child: buildDirectionView(
-              width: 100,
-              height: 60,
+              width: 90,
+              height: 44,
               radius: BorderRadius.circular(60),
               icon: Icons.volume_down,
               onTap: () {
@@ -126,8 +126,8 @@ class RemoteControlDialog extends StatelessWidget {
           ),
           Expanded(
             child: buildDirectionView(
-              width: 100,
-              height: 60,
+              width: 90,
+              height: 44,
               radius: BorderRadius.circular(60),
               icon: Icons.volume_up,
               onTap: () {
@@ -142,8 +142,8 @@ class RemoteControlDialog extends StatelessWidget {
 
   Widget _buildManagerWidget() {
     return SizedBox(
-      height: 100,
-      width: 250,
+      height: 48,
+      width: 200,
       child: Row(
         children: [
           Container(
@@ -152,8 +152,8 @@ class RemoteControlDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(60),
             ),
             child: buildDirectionView(
-              width: 60,
-              height: 60,
+              width: 44,
+              height: 44,
               radius: BorderRadius.circular(60),
               icon: Icons.arrow_back,
               onTap: () {
@@ -168,8 +168,8 @@ class RemoteControlDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(60),
             ),
             child: buildDirectionView(
-              width: 60,
-              height: 60,
+              width: 44,
+              height: 44,
               radius: BorderRadius.circular(60),
               icon: Icons.home,
               onTap: () {
@@ -184,8 +184,8 @@ class RemoteControlDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(60),
             ),
             child: buildDirectionView(
-              width: 60,
-              height: 60,
+              width: 44,
+              height: 44,
               radius: BorderRadius.circular(60),
               icon: Icons.menu,
               onTap: () {
@@ -215,23 +215,12 @@ class RemoteControlDialog extends StatelessWidget {
   }
 
   Widget buildCloseView(BuildContext context) {
-    return Positioned(
-      right: 0,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            SmartDialog.dismiss();
-          },
-          child: const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Icon(
-              Icons.close,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-      ),
+    return IconButton(
+      onPressed: () => SmartDialog.dismiss(),
+      icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+      tooltip: '关闭',
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
     );
   }
 

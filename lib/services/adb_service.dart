@@ -472,16 +472,19 @@ class AdbService {
   }
 
   /// 输入文本到当前设备
+  /// Android `input` 命令把 %s 当作空格转义符，所以把空格替换成 %s
+  /// 否则空格会让 `input text` 把字符串分裂成多个参数导致丢字符
   Future<bool> inputText(String text) async {
     if (text.isEmpty) return false;
     try {
+      final encoded = text.replaceAll(' ', '%s');
       var result = await _execAdb([
         '-s',
         currentDeviceId,
         'shell',
         'input',
         'text',
-        text,
+        encoded,
       ]);
       return result != null && result.exitCode == 0;
     } catch (e) {

@@ -1,5 +1,6 @@
 import 'package:device_player/services/adb_service.dart';
 import 'package:device_player/dialog/confirm_dialog.dart';
+import 'package:device_player/dialog/coordinate_input_dialog.dart';
 import 'package:device_player/dialog/download_progress_dialog.dart';
 import 'package:device_player/dialog/input_dialog.dart';
 import 'package:device_player/entity/list_filter_item.dart';
@@ -142,11 +143,15 @@ class SmartDialogUtils {
   static Future<String?> showInput({
     required String title,
     String hintText = '请输入内容',
+    String? helperText,
+    String submitLabel = '确定',
   }) async {
     String? result = await SmartDialog.show<String>(
       builder: (context) => InputDialog(
         title: title,
         hintText: hintText,
+        helperText: helperText,
+        submitLabel: submitLabel,
       ),
     );
     return result;
@@ -261,25 +266,20 @@ class SmartDialogUtils {
   /// 显示选择对话框
   static Future<ListFilterItem?> showPackageListDialog(List<ListFilterItem> data,
     ListFilterItem? current, Function()? refreshCallback) async {
-    
-    ListFilterItem result = await SmartDialog.show(
+    final result = await SmartDialog.show<ListFilterItem?>(
       builder: (context) => PackageListDialog(data: data, current: current, refreshCallback: refreshCallback),
       clickMaskDismiss: true,
     );
-
     return result;
   }
 
 
   static Future<ListFilterItem?> showPropertyListDialog(List<ListFilterItem> data) async {
-    
-    ListFilterItem result = await SmartDialog.show(
+    final result = await SmartDialog.show<ListFilterItem?>(
       builder: (context) => PropertyListDialog(data: data),
       clickMaskDismiss: true,
     );
-
     return result;
-
   }
 
   static Future<void> showRemoteControlDialog() async {
@@ -325,6 +325,15 @@ class SmartDialogUtils {
       clickMaskDismiss: true,
       backType: SmartBackType.block,
     );
+  }
+
+  /// 显示屏幕点击坐标对话框，返回 "x,y" 字符串（取消返回 null）
+  static Future<String?> showCoordinateInputDialog() async {
+    final result = await SmartDialog.show<String?>(
+      builder: (context) => const CoordinateInputDialog(),
+      clickMaskDismiss: true,
+    );
+    return result;
   }
 
   /// 显示代理调试对话框
