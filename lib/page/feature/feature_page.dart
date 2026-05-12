@@ -576,5 +576,4 @@ class _FeaturePageState extends ConsumerState<FeaturePage> {
     await featureNotifier.startApp();
   }
 
-
 }

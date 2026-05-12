@@ -10,7 +10,9 @@ class FileManagerState {
   final bool isDragging;
   final String? errorMessage;
   final int selectedFileIndex;
-  
+  /// 非空 = 当前处于 App 私有目录浏览模式，文件操作走 run-as <pkg>
+  final String? runAsPackage;
+
   const FileManagerState({
     required this.deviceId,
     this.currentPath = '/sdcard/',
@@ -20,9 +22,12 @@ class FileManagerState {
     this.isDragging = false,
     this.errorMessage,
     this.selectedFileIndex = -1,
+    this.runAsPackage,
   });
-  
+
   /// 创建状态副本，支持部分更新
+  /// runAsPackage 用 sentinel 来允许显式置为 null（退出私有模式）
+  static const _sentinel = Object();
   FileManagerState copyWith({
     String? deviceId,
     String? currentPath,
@@ -32,6 +37,7 @@ class FileManagerState {
     bool? isDragging,
     String? errorMessage,
     int? selectedFileIndex,
+    Object? runAsPackage = _sentinel,
   }) {
     return FileManagerState(
       deviceId: deviceId ?? this.deviceId,
@@ -42,6 +48,9 @@ class FileManagerState {
       isDragging: isDragging ?? this.isDragging,
       errorMessage: errorMessage ?? this.errorMessage,
       selectedFileIndex: selectedFileIndex ?? this.selectedFileIndex,
+      runAsPackage: identical(runAsPackage, _sentinel)
+          ? this.runAsPackage
+          : runAsPackage as String?,
     );
   }
   
@@ -57,23 +66,25 @@ class FileManagerState {
         other.isLoading == isLoading &&
         other.isDragging == isDragging &&
         other.errorMessage == errorMessage &&
-        other.selectedFileIndex == selectedFileIndex;
+        other.selectedFileIndex == selectedFileIndex &&
+        other.runAsPackage == runAsPackage;
   }
-  
+
   @override
   int get hashCode => Object.hash(
-    deviceId, 
-    currentPath, 
-    rootPath, 
-    files, 
-    isLoading, 
-    isDragging, 
-    errorMessage, 
-    selectedFileIndex
+    deviceId,
+    currentPath,
+    rootPath,
+    files,
+    isLoading,
+    isDragging,
+    errorMessage,
+    selectedFileIndex,
+    runAsPackage,
   );
-  
+
   @override
   String toString() {
-    return 'FileManagerState(deviceId: $deviceId, currentPath: $currentPath, rootPath: $rootPath, files: ${files.length}, isLoading: $isLoading, isDragging: $isDragging, errorMessage: $errorMessage, selectedFileIndex: $selectedFileIndex)';
+    return 'FileManagerState(deviceId: $deviceId, currentPath: $currentPath, rootPath: $rootPath, files: ${files.length}, isLoading: $isLoading, isDragging: $isDragging, errorMessage: $errorMessage, selectedFileIndex: $selectedFileIndex, runAsPackage: $runAsPackage)';
   }
 }

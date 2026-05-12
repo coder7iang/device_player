@@ -38,7 +38,10 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     
     try {
-      var result = await AdbService.instance.getFileList(state.currentPath);
+      final pkg = state.runAsPackage;
+      var result = pkg != null
+          ? await AdbService.instance.getFileListAsApp(pkg, state.currentPath)
+          : await AdbService.instance.getFileList(state.currentPath);
       if (result == null) {
         state = state.copyWith(
           isLoading: false,
@@ -201,8 +204,11 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
     if (!confirmed) return;
 
     SmartDialogUtils.showLoading('正在删除...');
-    final success = await AdbService.instance
-        .deleteFile(state.currentPath + file.name);
+    final pkg = state.runAsPackage;
+    final fullPath = state.currentPath + file.name;
+    final success = pkg != null
+        ? await AdbService.instance.deleteFileAsApp(pkg, fullPath)
+        : await AdbService.instance.deleteFile(fullPath);
     SmartDialogUtils.hideLoading();
 
     if (success) {
@@ -242,8 +248,11 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
     }
 
     SmartDialogUtils.showLoading('正在保存到电脑...');
-    final success = await AdbService.instance
-        .pullFile(state.currentPath + file.name, savePath);
+    final pkg = state.runAsPackage;
+    final fullPath = state.currentPath + file.name;
+    final success = pkg != null
+        ? await AdbService.instance.pullFileAsApp(pkg, fullPath, savePath)
+        : await AdbService.instance.pullFile(fullPath, savePath);
     SmartDialogUtils.hideLoading();
 
     if (success) {
@@ -253,6 +262,33 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
     }
   }
   
+  /// 进入 App 私有目录浏览模式（run-as）
+  /// 把 root/current 切到 /data/data/<pkg>/，后续所有命令带 run-as
+  void enterAppPrivateMode(String pkg) {
+    if (pkg.isEmpty) return;
+    final path = '/data/data/$pkg/';
+    state = state.copyWith(
+      runAsPackage: pkg,
+      rootPath: path,
+      currentPath: path,
+      files: const [],
+      selectedFileIndex: -1,
+    );
+    getFileList();
+  }
+
+  /// 退出 App 私有目录模式，回到 /sdcard/
+  void exitAppPrivateMode() {
+    state = state.copyWith(
+      runAsPackage: null,
+      rootPath: '/sdcard/',
+      currentPath: '/sdcard/',
+      files: const [],
+      selectedFileIndex: -1,
+    );
+    getFileList();
+  }
+
   /// 刷新文件列表
   void refresh() {
     getFileList();

@@ -1897,6 +1897,96 @@ class AdbService {
     return processResult;
   }
 
+  /// 检查包是否 debuggable（即能否走 run-as）
+  Future<bool> isPackageDebuggable(String pkg) async {
+    if (pkg.isEmpty) return false;
+    var result = await _execAdb([
+      "-s",
+      currentDeviceId,
+      "shell",
+      "run-as",
+      pkg,
+      "echo",
+      "ok",
+    ]);
+    if (result == null) return false;
+    final stdout = result.stdout.toString().trim();
+    return result.exitCode == 0 && stdout == 'ok';
+  }
+
+  /// 以 App 身份获取私有目录的文件列表（run-as）
+  Future<ProcessResult?> getFileListAsApp(String pkg, String path) async {
+    return await _execAdb([
+      "-s",
+      currentDeviceId,
+      "shell",
+      "run-as $pkg ls -FA $path 2>/dev/null",
+    ]);
+  }
+
+  /// 以 App 身份删除私有目录里的文件/文件夹
+  Future<bool> deleteFileAsApp(String pkg, String path) async {
+    var result = await _execAdb([
+      "-s",
+      currentDeviceId,
+      "shell",
+      "run-as $pkg rm -rf $path",
+    ]);
+    return result != null && result.exitCode == 0;
+  }
+
+  /// 以 App 身份从私有目录拉文件到电脑
+  /// 思路：在 shell 上下文执行 `run-as $pkg cat $remote > $sdcardTmp`，
+  ///   - cat 走 run-as（app uid 能读私有目录）
+  ///   - > 由外层 shell（shell uid）解释，写入 /sdcard
+  ///   然后正常 adb pull 临时文件，最后清理
+  /// 注：仅支持文件，不支持目录
+  Future<bool> pullFileAsApp(
+      String pkg, String remotePath, String localPath) async {
+    if (remotePath.isEmpty || localPath.isEmpty) return false;
+    final tmpName =
+        'dp_pull_${DateTime.now().millisecondsSinceEpoch}_${remotePath.split('/').last}';
+    final tmpPath = '/sdcard/$tmpName';
+    try {
+      // 1. run-as cat → /sdcard
+      var copyResult = await _execAdb([
+        "-s",
+        currentDeviceId,
+        "shell",
+        "run-as $pkg cat $remotePath > $tmpPath",
+      ]);
+      if (copyResult == null || copyResult.exitCode != 0) {
+        debugPrint('run-as cat 失败: ${copyResult?.stderr}');
+        return false;
+      }
+
+      // 2. adb pull
+      var pullResult = await _execAdb([
+        "-s",
+        currentDeviceId,
+        "pull",
+        tmpPath,
+        localPath,
+      ]);
+      return pullResult != null && pullResult.exitCode == 0;
+    } catch (e) {
+      debugPrint('pullFileAsApp 异常: $e');
+      return false;
+    } finally {
+      // 3. 清理临时文件，无论成功与否
+      try {
+        await _execAdb([
+          "-s",
+          currentDeviceId,
+          "shell",
+          "rm",
+          "-f",
+          tmpPath,
+        ]);
+      } catch (_) {}
+    }
+  }
+
   /// 保存日志到电脑
   Future<bool> saveLog(String savePath, {String? packageName}) async {
     try {
