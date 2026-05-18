@@ -244,11 +244,11 @@ class _DeviceSelectionDialogState extends ConsumerState<DeviceSelectionDialog> {
                   ),
                   TextButton.icon(
                     onPressed: () async {
-                      var result = await showDialog<bool>(
+                      await showDialog<bool>(
                         context: context,
                         builder: (context) => const WirelessConnectDialog(),
                       );
-                      if (result == true && widget.refreshCallback != null) {
+                      if (widget.refreshCallback != null) {
                         widget.refreshCallback!();
                         await Future.delayed(const Duration(milliseconds: 500));
                         final newDevices = widget.getCurrentDevices();

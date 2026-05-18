@@ -58,7 +58,6 @@ dependencies:
   lottie: ^2.7.0
   video_player: ^2.8.1
   image: ^4.0.0
-  qr_flutter: ^4.1.0
   audioplayers: ^5.2.1
   pdfx: ^2.6.0
   package_info_plus: ^4.2.0
