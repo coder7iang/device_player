@@ -1,6 +1,14 @@
-mac地址：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer_v1.1.0.zip
+# DevicePlayer
 
-## macOS 首次打开提示
+DevicePlayer 是一款基于 Flutter 的桌面端 Android 设备调试工具，面向开发与测试人员，把日常需要敲命令的 ADB 操作封装成可视化界面。支持 USB 与无线（Wi-Fi）连接，覆盖应用管理、文件管理、日志抓取、投屏、Monkey 测试等常用调试场景。
+
+支持 **macOS / Windows / Linux** 三端桌面运行。
+
+## 下载
+
+最新版本（macOS）：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePlayer_v1.1.0.zip
+
+### macOS 首次打开提示
 
 由于应用未经 Apple 公证，从网络下载后 macOS 会拦截打开。把 `DevicePlayer.app` 拖到 `/Applications` 后，在终端执行一次以下命令即可正常使用：
 
@@ -8,12 +16,101 @@ mac地址：https://coder7iang-1320222289.cos.ap-guangzhou.myqcloud.com/DevicePl
 sudo xattr -cr /Applications/DevicePlayer.app
 ```
 
-之后双击打开即可，无需再每次去"系统设置 → 隐私与安全性"放行。
+之后双击打开即可，无需再每次去“系统设置 → 隐私与安全性”放行。
+
+## 功能特性
+
+### 设备连接
+- USB 连接自动识别已授权设备
+- 无线（Wi-Fi）配对与连接，支持通过 mDNS 服务名识别无线设备
+- 多设备切换
+
+### 常用功能
+- 安装应用（支持拖拽 APK 安装）
+- 截图保存到电脑
+- 录屏
+- 查看当前 Activity
+- 输入文本
+- 投屏（基于 scrcpy）
+
+### 应用管理
+- 启动 / 停止 / 重启应用
+- 卸载应用
+- 清除数据（可选清除后重启）
+- 重置权限 / 授权所有权限
+- 查看安装路径、导出 APK
+- 查看签名信息、应用信息
+- 修改 SharedPreferences（SP）
+- 私有目录浏览（通过 `run-as` 访问应用私有文件）
+- Monkey 压力测试
+
+### 系统信息与控制
+- 查看 AndroidId、系统版本、IP 地址、Mac 地址
+- 查看系统属性
+- 重启手机
+
+### 按键与屏幕操作
+- HOME / 返回 / 菜单 / 电源 / 音量 / 静音 / 切换应用 等按键模拟
+- 上下左右滑动、屏幕点击
+- 遥控器模式
+
+### 网络调试
+- 代理调试（一键设置 / 清除全局代理）
+
+### 其他模块
+- 文件管理：浏览设备文件，上传 / 下载
+- 日志管理：实时抓取并过滤 logcat 日志，导出到本地
+- 系统托盘常驻，关闭窗口最小化到托盘
+
+## 技术栈
+
+- **Flutter**（Dart SDK `>=3.10.0`，Flutter `>=3.38.0`）
+- **状态管理**：flutter_riverpod / riverpod_annotation
+- **桌面集成**：window_manager、system_tray、desktop_drop、file_selector
+- **核心能力**：process_run（调用 ADB / scrcpy）、dio、archive、webview_flutter、video_player、lottie
+
+## 开发与构建
+
+本项目使用 [FVM](https://fvm.app/) 管理 Flutter 版本（见 `.fvmrc`）。
+
+```bash
+# 获取依赖
+flutter pub get
+
+# 本地运行（按当前平台）
+flutter run -d macos      # 或 windows / linux
+
+# 构建发布产物
+flutter build macos
+flutter build windows
+flutter build linux
+```
+
+> 运行投屏、设备调试等功能需本机环境包含可用的 `adb`（及投屏所需的 `scrcpy`）。
+
+## 项目结构
+
+```
+lib/
+├── main.dart            # 入口，窗口与系统托盘初始化
+├── common/              # 通用工具、键码、全局配置
+├── services/            # adb_service / scrcpy_service / video_cache_service
+├── page/                # 主要页面
+│   ├── main/            #   主框架与左侧导航
+│   ├── feature/         #   功能面板（各类调试操作）
+│   ├── flie/            #   文件管理
+│   ├── log/             #   日志管理
+│   ├── setting/         #   设置
+│   ├── play/ web/ about/
+├── dialog/              # 各类对话框（设备选择、无线连接、Monkey、录屏等）
+├── entity/              # 数据模型
+└── widget/              # 通用组件
+```
+
+## 截图
 
 <img width="960" height="720" alt="image" src="https://github.com/user-attachments/assets/dac209f6-cbd6-4776-a284-c1c9a67f4324" />
------
+
 <img width="960" height="720" alt="image" src="https://github.com/user-attachments/assets/1ecddbf6-3e91-4364-a066-da2253834adf" />
------
+
 <img width="960" height="720" alt="image" src="https://github.com/user-attachments/assets/f8c42ec3-ba54-47e5-b500-75593576ae82" />
-
-
