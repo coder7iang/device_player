@@ -580,7 +580,7 @@ class AdbService {
       }
 
       // 水印文字
-      const watermarkText = 'screenshot by DevicePlayer';
+      const watermarkText = 'screenshot by AdbPlayer';
       
       // 使用 arial48 字体（高度约48像素）
       final font = img.arial48;

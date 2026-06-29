@@ -10,7 +10,7 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
-  static const String _appName = 'DevicePlayer';
+  static const String _appName = 'AdbPlayer';
   static const String _githubUrl = 'https://github.com/coder7iang/device_player';
   static const String _issuesUrl = 'https://github.com/coder7iang/device_player/issues';
 

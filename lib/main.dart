@@ -23,7 +23,7 @@ Future<void> _initSystemTray() async {
   await _systemTray.initSystemTray(
     title: '',
     iconPath: iconPath,
-    toolTip: 'DevicePlayer',
+    toolTip: 'AdbPlayer',
   );
 
   await _trayMenu.buildFrom([
@@ -68,7 +68,7 @@ void main() async {
     const windowOptions = WindowOptions(
       size: Size(960, 720),
       center: true,
-      title: 'DevicePlayer',
+      title: 'AdbPlayer',
       titleBarStyle: TitleBarStyle.hidden,
     );
 
@@ -131,7 +131,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DevicePlayer',
+      title: 'AdbPlayer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
