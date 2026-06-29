@@ -1,8 +1,8 @@
-import 'package:device_player/page/feature/feature_provider.dart';
-import 'package:device_player/page/feature/feature_state.dart';
-import 'package:device_player/page/feature/feature_data.dart';
-import 'package:device_player/page/feature/feature_constants.dart';
-import 'package:device_player/page/feature/feature_background.dart';
+import 'package:adb_player/page/feature/feature_provider.dart';
+import 'package:adb_player/page/feature/feature_state.dart';
+import 'package:adb_player/page/feature/feature_data.dart';
+import 'package:adb_player/page/feature/feature_constants.dart';
+import 'package:adb_player/page/feature/feature_background.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

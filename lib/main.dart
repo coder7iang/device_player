@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:device_player/page/main/main_page.dart';
+import 'package:adb_player/page/main/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';

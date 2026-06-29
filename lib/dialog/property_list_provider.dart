@@ -1,6 +1,6 @@
-import 'package:device_player/common/app.dart';
-import 'package:device_player/entity/list_filter_item.dart';
-import 'package:device_player/dialog/property_list_state.dart';
+import 'package:adb_player/common/app.dart';
+import 'package:adb_player/entity/list_filter_item.dart';
+import 'package:adb_player/dialog/property_list_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:selector_plus/selector_plus.dart';
 

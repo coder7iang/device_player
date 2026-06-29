@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:device_player/common/app.dart';
+import 'package:adb_player/common/app.dart';
 
 /// 应用背景预览组件
 class FeatureBackground extends StatefulWidget {

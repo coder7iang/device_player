@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
-project(device_player LANGUAGES CXX)
+project(adb_player LANGUAGES CXX)
 
-set(BINARY_NAME "device_player")
+set(BINARY_NAME "adb_player")
 
 cmake_policy(SET CMP0063 NEW)
 

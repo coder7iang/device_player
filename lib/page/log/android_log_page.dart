@@ -1,6 +1,6 @@
-import 'package:device_player/page/log/android_log_provider.dart';
-import 'package:device_player/page/log/android_log_state.dart';
-import 'package:device_player/widget/pop_up_menu_button.dart';
+import 'package:adb_player/page/log/android_log_provider.dart';
+import 'package:adb_player/page/log/android_log_state.dart';
+import 'package:adb_player/widget/pop_up_menu_button.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';

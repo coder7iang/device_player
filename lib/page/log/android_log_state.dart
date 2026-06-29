@@ -1,4 +1,4 @@
-import 'package:device_player/widget/pop_up_menu_button.dart';
+import 'package:adb_player/widget/pop_up_menu_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

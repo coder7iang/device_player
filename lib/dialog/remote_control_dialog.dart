@@ -1,4 +1,4 @@
-import 'package:device_player/common/key_code.dart';
+import 'package:adb_player/common/key_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';

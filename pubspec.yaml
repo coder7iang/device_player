@@ -1,4 +1,4 @@
-name: device_player
+name: adb_player
 description: 设备调试工具.
 
 # The following line prevents the package from being accidentally published to

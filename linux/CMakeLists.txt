@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(runner LANGUAGES CXX)
 
-set(BINARY_NAME "device_player")
-set(APPLICATION_ID "com.example.device_player")
+set(BINARY_NAME "adb_player")
+set(APPLICATION_ID "com.strong.adbPlayer")
 
 cmake_policy(SET CMP0063 NEW)
 

@@ -3,7 +3,7 @@
 echo "正在清除 Device Player 应用数据..."
 
 # 应用包名
-APP_ID="com.strong.devicePlayer"
+APP_ID="com.strong.adbPlayer"
 
 # 清除应用支持目录
 APP_SUPPORT_PATH="$HOME/Library/Application Support/$APP_ID"

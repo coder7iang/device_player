@@ -1,5 +1,5 @@
-import 'package:device_player/dialog/smart_dialog_utils.dart';
-import 'package:device_player/entity/app_info.dart';
+import 'package:adb_player/dialog/smart_dialog_utils.dart';
+import 'package:adb_player/entity/app_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';

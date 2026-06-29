@@ -1,5 +1,5 @@
-import 'package:device_player/entity/list_filter_item.dart';
-import 'package:device_player/dialog/package_list_provider.dart';
+import 'package:adb_player/entity/list_filter_item.dart';
+import 'package:adb_player/dialog/package_list_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';

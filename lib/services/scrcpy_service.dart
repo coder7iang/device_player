@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:archive/archive_io.dart';
-import 'package:device_player/common/app.dart';
-import 'package:device_player/dialog/smart_dialog_utils.dart';
-import 'package:device_player/services/adb_service.dart';
+import 'package:adb_player/common/app.dart';
+import 'package:adb_player/dialog/smart_dialog_utils.dart';
+import 'package:adb_player/services/adb_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:process_run/shell_run.dart';

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:device_player/dialog/food_roulette_state.dart';
+import 'package:adb_player/dialog/food_roulette_state.dart';
 
 final foodRouletteProvider = StateNotifierProvider<FoodRouletteNotifier, FoodRouletteState>((ref) {
   return FoodRouletteNotifier();

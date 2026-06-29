@@ -1,9 +1,9 @@
 import 'package:desktop_drop/desktop_drop.dart';
-import 'package:device_player/page/flie/file_manager_state.dart';
-import 'package:device_player/page/flie/file_model.dart';
-import 'package:device_player/services/adb_service.dart';
-import 'package:device_player/dialog/smart_dialog_utils.dart';
-import 'package:device_player/common/app.dart';
+import 'package:adb_player/page/flie/file_manager_state.dart';
+import 'package:adb_player/page/flie/file_model.dart';
+import 'package:adb_player/services/adb_service.dart';
+import 'package:adb_player/dialog/smart_dialog_utils.dart';
+import 'package:adb_player/common/app.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

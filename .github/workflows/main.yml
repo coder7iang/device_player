@@ -97,7 +97,7 @@ jobs:
           elif [ "${{ matrix.os }}" == "macos-latest" ]; then
             flutter build macos --release --no-codesign
             mkdir -p dist
-            cp -r build/macos/Build/Products/Release/device_player.app dist/
+            cp -r build/macos/Build/Products/Release/AdbPlayer.app dist/
           fi
 
       # 压缩
@@ -105,16 +105,16 @@ jobs:
         run: |
           VERSION=${{ needs.prepare.outputs.version }}
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            powershell Compress-Archive -Path dist\\* -DestinationPath device_player-${VERSION}-windows.zip
+            powershell Compress-Archive -Path dist\\* -DestinationPath adb_player-${VERSION}-windows.zip
           else
-            zip -r device_player-${VERSION}-${{ matrix.os }}.zip dist
+            zip -r adb_player-${VERSION}-${{ matrix.os }}.zip dist
           fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: device_player-${{ matrix.os }}
-          path: device_player-*.zip
+          name: adb_player-${{ matrix.os }}
+          path: adb_player-*.zip
 
   release:
     needs: build
@@ -131,7 +131,7 @@ jobs:
           tag_name: v${{ needs.prepare.outputs.version }}
           name: Release v${{ needs.prepare.outputs.version }}
           body: |
-            🎉 **Device Player v${{ needs.prepare.outputs.version }}**
+            🎉 **AdbPlayer v${{ needs.prepare.outputs.version }}**
             - 自动构建于 GitHub Actions
             - 支持 Linux / Windows / macOS
         env:
@@ -140,6 +140,6 @@ jobs:
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/device_player-*.zip
+          files: artifacts/**/adb_player-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

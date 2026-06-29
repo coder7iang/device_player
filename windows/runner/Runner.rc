@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example.device_player" "\0"
+            VALUE "CompanyName", "com.strong.adbPlayer" "\0"
             VALUE "FileDescription", "AdbPlayer" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "AdbPlayer" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2022 com.example.device_player All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2022 com.strong.adbPlayer All rights reserved." "\0"
             VALUE "OriginalFilename", "AdbPlayer.exe" "\0"
             VALUE "ProductName", "AdbPlayer" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

@@ -1,4 +1,4 @@
-import 'package:device_player/services/adb_service.dart';
+import 'package:adb_player/services/adb_service.dart';
 import 'package:flutter/material.dart';
 
 /// 无线连接对话框 - 支持 ADB 无线配对和连接

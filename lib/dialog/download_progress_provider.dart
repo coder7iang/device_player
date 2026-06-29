@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:device_player/dialog/download_progress_state.dart';
+import 'package:adb_player/dialog/download_progress_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';

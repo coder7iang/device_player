@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:device_player/dialog/food_roulette_provider.dart';
-import 'package:device_player/dialog/food_roulette_state.dart';
+import 'package:adb_player/dialog/food_roulette_provider.dart';
+import 'package:adb_player/dialog/food_roulette_state.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class FoodRouletteDialog extends ConsumerStatefulWidget {

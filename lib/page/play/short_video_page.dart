@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:device_player/services/video_cache_service.dart';
+import 'package:adb_player/services/video_cache_service.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 

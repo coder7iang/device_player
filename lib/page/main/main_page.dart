@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:device_player/page/about/about_page.dart';
-import 'package:device_player/page/log/android_log_page.dart';
-import 'package:device_player/page/feature/feature_page.dart';
-import 'package:device_player/page/flie/file_manager_page.dart';
-import 'package:device_player/page/main/main_provider.dart';
-import 'package:device_player/page/main/main_state.dart';
-import 'package:device_player/page/play/play_page.dart';
-import 'package:device_player/page/setting/setting_page.dart';
+import 'package:adb_player/page/about/about_page.dart';
+import 'package:adb_player/page/log/android_log_page.dart';
+import 'package:adb_player/page/feature/feature_page.dart';
+import 'package:adb_player/page/flie/file_manager_page.dart';
+import 'package:adb_player/page/main/main_provider.dart';
+import 'package:adb_player/page/main/main_state.dart';
+import 'package:adb_player/page/play/play_page.dart';
+import 'package:adb_player/page/setting/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';

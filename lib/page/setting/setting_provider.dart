@@ -1,8 +1,8 @@
-import 'package:device_player/common/app.dart';
-import 'package:device_player/page/setting/setting_state.dart';
-import 'package:device_player/services/adb_service.dart';
-import 'package:device_player/services/scrcpy_service.dart';
-import 'package:device_player/dialog/smart_dialog_utils.dart';
+import 'package:adb_player/common/app.dart';
+import 'package:adb_player/page/setting/setting_state.dart';
+import 'package:adb_player/services/adb_service.dart';
+import 'package:adb_player/services/scrcpy_service.dart';
+import 'package:adb_player/dialog/smart_dialog_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// ADB 设置页面的 Provider

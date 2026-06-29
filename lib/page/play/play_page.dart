@@ -1,7 +1,7 @@
-import 'package:device_player/dialog/music_player_dialog.dart';
-import 'package:device_player/dialog/smart_dialog_utils.dart';
-import 'package:device_player/page/play/code_rain_page.dart';
-import 'package:device_player/page/play/short_video_page.dart';
+import 'package:adb_player/dialog/music_player_dialog.dart';
+import 'package:adb_player/dialog/smart_dialog_utils.dart';
+import 'package:adb_player/page/play/code_rain_page.dart';
+import 'package:adb_player/page/play/short_video_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdfx/pdfx.dart';

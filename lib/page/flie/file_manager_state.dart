@@ -1,4 +1,4 @@
-import 'package:device_player/page/flie/file_model.dart';
+import 'package:adb_player/page/flie/file_model.dart';
 
 /// 文件管理页面状态类
 class FileManagerState {

@@ -1,7 +1,7 @@
-import 'package:device_player/dialog/devices_model.dart';
-import 'package:device_player/dialog/devices_selection_provider.dart';
-import 'package:device_player/dialog/wireless_connect_dialog.dart';
-import 'package:device_player/services/adb_service.dart';
+import 'package:adb_player/dialog/devices_model.dart';
+import 'package:adb_player/dialog/devices_selection_provider.dart';
+import 'package:adb_player/dialog/wireless_connect_dialog.dart';
+import 'package:adb_player/services/adb_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

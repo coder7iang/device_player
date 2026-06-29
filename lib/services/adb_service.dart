@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
-import 'package:device_player/common/app.dart';
-import 'package:device_player/common/key_code.dart';
-import 'package:device_player/dialog/devices_model.dart';
-import 'package:device_player/dialog/smart_dialog_utils.dart';
-import 'package:device_player/entity/app_info.dart';
-import 'package:device_player/entity/app_signature_info.dart';
-import 'package:device_player/entity/list_filter_item.dart';
-import 'package:device_player/entity/monkey_result.dart';
+import 'package:adb_player/common/app.dart';
+import 'package:adb_player/common/key_code.dart';
+import 'package:adb_player/dialog/devices_model.dart';
+import 'package:adb_player/dialog/smart_dialog_utils.dart';
+import 'package:adb_player/entity/app_info.dart';
+import 'package:adb_player/entity/app_signature_info.dart';
+import 'package:adb_player/entity/list_filter_item.dart';
+import 'package:adb_player/entity/monkey_result.dart';
 import 'package:dio/dio.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';

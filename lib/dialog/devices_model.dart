@@ -1,4 +1,4 @@
-import 'package:device_player/entity/list_filter_item.dart';
+import 'package:adb_player/entity/list_filter_item.dart';
 
 class DevicesModel extends ListFilterItem {
   String brand;

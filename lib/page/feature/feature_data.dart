@@ -1,5 +1,5 @@
-import 'package:device_player/common/icon_font.dart';
-import 'package:device_player/page/feature/feature_constants.dart';
+import 'package:adb_player/common/icon_font.dart';
+import 'package:adb_player/page/feature/feature_constants.dart';
 import 'package:flutter/material.dart';
 
 /// 功能按钮数据类

@@ -1,5 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:device_player/dialog/smart_dialog_utils.dart';
+import 'package:adb_player/dialog/smart_dialog_utils.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:device_player/dialog/download_progress_provider.dart';
+import 'package:adb_player/dialog/download_progress_provider.dart';
 
 class DownloadProgressDialog extends ConsumerStatefulWidget {
   final String url;

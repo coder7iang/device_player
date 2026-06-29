@@ -1,4 +1,4 @@
-import 'package:device_player/dialog/devices_model.dart';
+import 'package:adb_player/dialog/devices_model.dart';
 
 /// 主页面状态类
 class MainState {

@@ -1,6 +1,6 @@
-import 'package:device_player/dialog/devices_selection_state.dart';
+import 'package:adb_player/dialog/devices_selection_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:device_player/dialog/devices_model.dart';
+import 'package:adb_player/dialog/devices_model.dart';
 
 
 
