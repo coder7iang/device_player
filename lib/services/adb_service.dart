@@ -1891,7 +1891,7 @@ class AdbService {
       currentDeviceId,
       "shell",
       "ls",
-      "-FA",
+      "-lA",
       path
     ]);
     return processResult;
@@ -1920,7 +1920,7 @@ class AdbService {
       "-s",
       currentDeviceId,
       "shell",
-      "run-as $pkg ls -FA $path 2>/dev/null",
+      "run-as $pkg ls -lA $path 2>/dev/null",
     ]);
   }
 

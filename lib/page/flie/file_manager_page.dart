@@ -214,6 +214,18 @@ class _FileManagerPageState extends ConsumerState<FileManagerPage> {
     );
   }
 
+  /// 文件行副标题：修改时间 · 大小（文件夹只显示时间）
+  Widget? _buildSubtitle(FileModel model) {
+    final parts = <String>[];
+    if (model.modifiedTime.isNotEmpty) parts.add(model.modifiedTime);
+    if (model.sizeText.isNotEmpty) parts.add(model.sizeText);
+    if (parts.isEmpty) return null;
+    return Text(
+      parts.join('  ·  '),
+      style: const TextStyle(fontSize: 12, color: Colors.black45),
+    );
+  }
+
   Widget itemView(FileModel model, int index, FileManagerNotifier notifier) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -239,6 +251,7 @@ class _FileManagerPageState extends ConsumerState<FileManagerPage> {
                       : Colors.grey,
                 ),
           title: Text(model.name),
+          subtitle: _buildSubtitle(model),
           onTap: () {
             notifier.openFolder(model);
           },

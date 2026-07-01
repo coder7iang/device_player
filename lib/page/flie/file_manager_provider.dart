@@ -53,35 +53,10 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
       List<FileModel> fileList = [];
       var stdout = result.stdout.toString().trim();
       var lines = stdout.isNotEmpty ? stdout.split('\n') : <String>[];
-      
+
       for (var value in lines) {
-        value = value.trim();
-        if (value.isEmpty) continue;
-        if (value.endsWith("/")) {
-          fileList.add(FileModel(
-            value.substring(0, value.length - 1),
-            typeFolder,
-            Icons.folder,
-          ));
-        } else if (value.endsWith("@")) {
-          fileList.add(FileModel(
-            value.substring(0, value.length - 1),
-            typeLinkFile,
-            Icons.attach_file,
-          ));
-        } else if (value.endsWith("*")) {
-          fileList.add(FileModel(
-            value.substring(0, value.length - 1),
-            typeFile,
-            Icons.insert_drive_file,
-          ));
-        } else {
-          fileList.add(FileModel(
-            value,
-            typeFile,
-            Icons.insert_drive_file,
-          ));
-        }
+        final model = _parseLsLine(value);
+        if (model != null) fileList.add(model);
       }
       
       // 排序：文件夹优先，组内按文件名不区分大小写字母序
@@ -105,6 +80,65 @@ class FileManagerNotifier extends StateNotifier<FileManagerState> {
     }
   }
   
+  static final RegExp _dateReg = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+  static final RegExp _permReg = RegExp(r'^[dlbcps\-][rwxsStT\-]{9}');
+
+  /// 解析 `ls -lA` 的一行输出，返回 FileModel；无法识别的行返回 null
+  /// 典型格式：
+  ///   -rw-rw---- 1 u0_a1 media_rw  1508 2024-03-10 15:17 config.json
+  ///   drwxrwx--- 2 u0_a1 media_rw  3452 2024-03-10 15:17 Download
+  ///   lrwxrwxrwx 1 root  root        21 2009-01-01 08:00 sdcard -> /storage/self/primary
+  FileModel? _parseLsLine(String line) {
+    line = line.trimRight();
+    if (line.isEmpty) return null;
+    // 跳过 "total N" 之类的汇总行
+    final tokens = line.trim().split(RegExp(r'\s+'));
+    if (tokens.isEmpty || !_permReg.hasMatch(tokens[0])) return null;
+
+    // 定位日期列（YYYY-MM-DD），其后为时间列，再后为文件名
+    int dateIdx = -1;
+    for (var i = 2; i < tokens.length - 1; i++) {
+      if (_dateReg.hasMatch(tokens[i])) {
+        dateIdx = i;
+        break;
+      }
+    }
+
+    final typeChar = tokens[0][0];
+    int size = -1;
+    String modifiedTime = '';
+    String name;
+
+    if (dateIdx >= 1 && dateIdx + 1 < tokens.length) {
+      // 大小是日期列前一个 token（设备节点是 "major, minor"，parse 失败则置 -1）
+      size = int.tryParse(tokens[dateIdx - 1]) ?? -1;
+      modifiedTime = '${tokens[dateIdx]} ${tokens[dateIdx + 1]}';
+      name = tokens.sublist(dateIdx + 2).join(' ');
+    } else {
+      // 兜底：无法定位日期，尽量取文件名
+      name = tokens.length > 7 ? tokens.sublist(7).join(' ') : tokens.last;
+    }
+
+    // 软链接去掉 " -> target"，文件夹的目录项大小无意义，不展示
+    if (typeChar == 'l') {
+      final arrow = name.indexOf(' -> ');
+      if (arrow >= 0) name = name.substring(0, arrow);
+    }
+    if (typeChar == 'd') size = -1;
+    if (name.isEmpty) return null;
+
+    if (typeChar == 'd') {
+      return FileModel(name, typeFolder, Icons.folder,
+          size: size, modifiedTime: modifiedTime);
+    } else if (typeChar == 'l') {
+      return FileModel(name, typeLinkFile, Icons.attach_file,
+          size: size, modifiedTime: modifiedTime);
+    } else {
+      return FileModel(name, typeFile, Icons.insert_drive_file,
+          size: size, modifiedTime: modifiedTime);
+    }
+  }
+
   /// 打开文件夹
   void openFolder(FileModel value) {
     if (value.type == typeFolder) {
